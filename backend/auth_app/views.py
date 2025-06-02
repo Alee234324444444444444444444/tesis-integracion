@@ -12,15 +12,20 @@ class RegisterView(APIView):
     def post(self, request):
         data = request.data
 
-        if not data.get('username') or not data.get('password'):
+        if not data.get('username') or not data.get('password') or not data.get('email'):
             return Response({'error': 'Faltan campos requeridos'}, status=400)
 
         if User.objects(username=data['username']).first():
             return Response({'error': 'Usuario ya existe'}, status=400)
 
+        if User.objects(email=data['email']).first():
+            return Response({'error': 'Email ya está en uso'}, status=400)
+
         user = User(
             username=data['username'],
-            password=make_password(data['password'])
+            password=make_password(data['password']),
+            email=data['email'],
+            is_admin=data.get('is_admin', False)  # opcional desde el frontend
         )
         user.save()
         return Response({'msg': 'Usuario creado correctamente'}, status=201)
@@ -34,7 +39,8 @@ class LoginView(APIView):
             request.session['user'] = user.username
             return Response({
                 'msg': 'Login correcto',
-                'username': user.username  # ✅ enviamos el username al frontend
+                'username': user.username,
+                'is_admin': user.is_admin
             })
         return Response({'error': 'Credenciales incorrectas'}, status=400)
 
@@ -48,15 +54,15 @@ class LogoutView(APIView):
 
 class ForgotPasswordView(APIView):
     def post(self, request):
-        username = request.data.get('username')
+        email = request.data.get('email')  # Cambiado de 'username' a 'email'
 
-        if not username:
-            return Response({'error': 'El campo usuario es requerido'}, status=400)
+        if not email:
+            return Response({'error': 'El campo correo electrónico es requerido'}, status=400)
 
-        user = User.objects(username=username).first()
+        user = User.objects(email=email).first()
         if not user:
-            return Response({'error': 'Usuario no encontrado'}, status=404)
+            return Response({'error': 'Usuario no encontrado con ese correo'}, status=404)
 
         # Aquí iría lógica real de recuperación (correo, token, etc.)
-        # Por ahora solo devolvemos el mensaje simulado
         return Response({'msg': 'Solicitud enviada. Revisa tu correo.'}, status=200)
+

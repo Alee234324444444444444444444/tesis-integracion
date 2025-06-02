@@ -1,0 +1,240 @@
+/* Contenedor principal */
+.register-container {
+  min-height: 100vh;
+  background-color: #d1d5db; /* gray-300 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+/* Card del registro */
+.register-card {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+  width: 100%;
+  max-width: 28rem;
+}
+
+/* Header con logo y títulos */
+.register-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+}
+
+.logo-blue {
+  width: 2rem;
+  height: 2rem;
+  background-color: #3b82f6;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.5rem;
+}
+
+.logo-blue-inner {
+  width: 1rem;
+  height: 1rem;
+  background-color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-blue-center {
+  width: 0.5rem;
+  height: 0.75rem;
+  background-color: #3b82f6;
+  border-radius: 0.125rem;
+}
+
+.logo-green {
+  width: 1.5rem;
+  height: 1.5rem;
+  background-color: #22c55e;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo-green-inner {
+  width: 0.75rem;
+  height: 0.75rem;
+  background-color: white;
+  border-radius: 0.125rem;
+}
+
+.register-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+  margin-top: 0;
+}
+
+.register-subtitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #4b5563;
+  letter-spacing: 0.05em;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* Formulario */
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.input-group {
+  position: relative;
+}
+
+/* Íconos dentro del input */
+/* Íconos dentro del input */
+.input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-55%); /* antes -50% */
+  color: gray;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+
+
+
+
+
+
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  color: gray;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+/* Inputs */
+.register-input {
+  width: 100%;
+  padding: 0.75rem 2.5rem;
+  background-color: #f3f4f6;
+  border: none;
+  border-radius: 0.5rem;
+  color: #374151;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.register-input::placeholder {
+  color: #6b7280;
+}
+
+.register-input:focus {
+  outline: none;
+  background-color: white;
+  box-shadow: 0 0 0 2px #22c55e;
+}
+
+/* Botón principal */
+.register-button {
+  width: 100%;
+  background-color: #22c55e;
+  color: white;
+  font-weight: 500;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.register-button:hover {
+  background-color: #16a34a;
+}
+
+.register-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #22c55e, 0 0 0 4px rgba(34, 197, 94, 0.2);
+}
+
+/* Enlaces */
+.register-links {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.register-text {
+  font-size: 0.875rem;
+  color: #4b5563;
+}
+
+.register-link {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  text-decoration: none;
+}
+
+.register-link:hover {
+  color: #2563eb;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .register-container {
+    padding: 0.5rem;
+  }
+
+  .register-card {
+    padding: 1.5rem;
+  }
+
+  .register-title {
+    font-size: 1.125rem;
+  }
+}
+
+.register-message {
+  margin-bottom: 15px;
+  padding: 10px 15px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.register-message.success {
+  background-color: #d1fae5; /* verde claro */
+  color: #065f46; /* verde fuerte */
+}
+
+.register-message.error {
+  background-color: #fee2e2; /* rojo claro */
+  color: #b91c1c; /* rojo fuerte */
+}
+
