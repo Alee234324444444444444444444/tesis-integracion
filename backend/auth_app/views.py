@@ -7,6 +7,9 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import User
 from django.contrib.auth.hashers import make_password, check_password
+import uuid
+from django.core.mail import send_mail
+from django.conf import settings
 
 class RegisterView(APIView):
     def post(self, request):
@@ -52,9 +55,16 @@ class LogoutView(APIView):
         return Response({'msg': 'Sesión cerrada'})
 
 
+import uuid
+from django.core.mail import send_mail
+from django.conf import settings
+
+# Simulación de almacenamiento temporal de tokens
+RESET_TOKENS = {}
+
 class ForgotPasswordView(APIView):
     def post(self, request):
-        email = request.data.get('email')  # Cambiado de 'username' a 'email'
+        email = request.data.get('email')
 
         if not email:
             return Response({'error': 'El campo correo electrónico es requerido'}, status=400)
@@ -63,6 +73,38 @@ class ForgotPasswordView(APIView):
         if not user:
             return Response({'error': 'Usuario no encontrado con ese correo'}, status=404)
 
-        # Aquí iría lógica real de recuperación (correo, token, etc.)
-        return Response({'msg': 'Solicitud enviada. Revisa tu correo.'}, status=200)
+        # 1. Generar token único
+        token = str(uuid.uuid4())
+        RESET_TOKENS[token] = user.username  # Guardar token temporal
+
+        # 2. Construir el link
+        reset_link = f"http://localhost:3000/reset-password/{token}"
+
+        # 3. Enviar correo
+        send_mail(
+            'Recuperación de contraseña - Environovalab',
+            f'Hola, haz clic aquí para restablecer tu contraseña:\n{reset_link}',
+            settings.EMAIL_HOST_USER,
+            [email],
+            fail_silently=False,
+        )
+
+        return Response({'msg': 'Correo enviado. Revisa tu bandeja de entrada.'})
+    
+class ResetPasswordView(APIView):
+    def post(self, request, token):
+        new_password = request.data.get('password')
+        username = RESET_TOKENS.get(token)
+
+        if not username:
+            return Response({'error': 'Token inválido o expirado'}, status=400)
+
+        user = User.objects(username=username).first()
+        user.password = make_password(new_password)
+        user.save()
+
+        del RESET_TOKENS[token]
+
+        return Response({'msg': 'Contraseña actualizada correctamente'})
+
 
