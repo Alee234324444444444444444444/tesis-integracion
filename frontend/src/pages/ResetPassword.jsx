@@ -11,11 +11,11 @@ export default function ResetPassword() {
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState(null)
   const [isSuccess, setIsSuccess] = useState(false)
-  const [loading, setLoading] = useState(false) // 👈 Estado para "Cambiando..."
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLoading(true) // activar "Cambiando..."
+    setLoading(true) 
     try {
       const res = await axios.post(`http://localhost:8000/api/auth/reset-password/${token}/`, {
         password
