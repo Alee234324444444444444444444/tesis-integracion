@@ -89,7 +89,7 @@ class ForgotPasswordView(APIView):
             fail_silently=False,
         )
 
-        return Response({'msg': 'Correo enviado. Revisa tu bandeja de entrada.'})
+        return Response({'msg': 'Correo enviado. Revisa tu correo para recuperar tu cuenta.'})
     
 class ResetPasswordView(APIView):
     def post(self, request, token):

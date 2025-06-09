@@ -3,37 +3,39 @@ Django settings for backend project.
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 from mongoengine import connect
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# BASE_DIR y carga de .env
 BASE_DIR = Path(__file__).resolve().parent.parent
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
-# SECURITY WARNING: keep the secret key used in production secret!
+# Clave secreta (NO USAR esta en producción)
 SECRET_KEY = 'django-insecure-dt!+&^x((=ru@-r1q)sehlx$v^er(4d-^n3zbm-4%*bwvd7_y$'
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# Debug solo en desarrollo
 DEBUG = True
-
 ALLOWED_HOSTS = []
 
-# Application definition
+# Aplicaciones instaladas
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.sessions',         # ✅ Solo una vez
+    'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'rest_framework',
     'corsheaders',
-    'auth_app',                         # Tu app personalizada
+    'auth_app',
 ]
 
+# Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',             # ✅ Debería ir justo después de SessionMiddleware
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -41,12 +43,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# CORS para permitir conexión desde React
+# CORS para permitir llamadas desde React
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
 ROOT_URLCONF = 'backend.urls'
 
+# Templates (HTML)
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -64,13 +67,21 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'backend.wsgi.application'
 
-# Base de datos MongoDB Atlas (mongoengine)
+# Conexión a MongoDB Atlas
 connect(
-    db="tudb",  # Cambia "tudb" por el nombre real de tu base de datos si es necesario
+    db="tudb",  # Cambia si usas otro nombre
     host="mongodb+srv://barrionuevoalejandro23:VGKNVTi1U09seFV3@cluster0.viaqx.mongodb.net/tudb?retryWrites=true&w=majority"
 )
 
-# AUTH (usamos nuestras propias validaciones con mongoengine, así que esto se puede dejar estándar)
+# Base de datos SQLite para sesiones
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
+}
+
+# Validación de contraseñas (opcional si no usas Django User directamente)
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -95,17 +106,14 @@ USE_TZ = True
 # Archivos estáticos
 STATIC_URL = 'static/'
 
-
-# ... (todo lo que ya tienes)
-
-# Base de datos SQLite usada solo para manejar sesiones
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-
-# Campo de clave primaria por defecto
+# Clave primaria por defecto
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ✅ Configuración de EMAIL desde .env
+
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT'))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

@@ -12,10 +12,12 @@ export default function Register() {
   const [showPassword, setShowPassword] = useState(false)
   const [message, setMessage] = useState(null)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [loading, setLoading] = useState(false) // 👈 nuevo estado
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setLoading(true) // 👈 mostrar "Registrando..."
     try {
       const res = await axios.post('http://localhost:8000/api/auth/register/', form, {
         headers: { 'Content-Type': 'application/json' }
@@ -27,6 +29,8 @@ export default function Register() {
       const errorMsg = err.response?.data?.error || 'Error al registrar'
       setMessage(errorMsg)
       setIsSuccess(false)
+    } finally {
+      setLoading(false) // 👈 restaurar al final
     }
   }
 
@@ -51,7 +55,6 @@ export default function Register() {
         )}
 
         <form onSubmit={handleSubmit} className="register-form">
-          {/* Campo Usuario */}
           <div className="input-group">
             <FaUser className="input-icon" />
             <input
@@ -65,7 +68,6 @@ export default function Register() {
             />
           </div>
 
-          {/* Campo Correo electrónico */}
           <div className="input-group">
             <MdEmail className="input-icon" />
             <input
@@ -79,7 +81,6 @@ export default function Register() {
             />
           </div>
 
-          {/* Campo Contraseña */}
           <div className="input-group">
             <FaLock className="input-icon" />
             <input
@@ -96,8 +97,8 @@ export default function Register() {
             </span>
           </div>
 
-          <button type="submit" className="register-button">
-            Crear cuenta
+          <button type="submit" className="register-button" disabled={loading}>
+            <strong>{loading ? 'Registrando...' : 'Registrarse'}</strong>
           </button>
         </form>
 

@@ -10,10 +10,12 @@ export default function Login() {
   const [form, setForm] = useState({ username: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false) // 👈 nuevo estado para loading
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setLoading(true)
     try {
       const res = await axios.post('http://localhost:8000/api/auth/login/', form)
       localStorage.setItem('auth', 'true')
@@ -22,6 +24,8 @@ export default function Login() {
       navigate('/dashboard')
     } catch (err) {
       setError('Usuario o contraseña incorrectos')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -35,10 +39,9 @@ export default function Login() {
         <div className="login-header">
           <div className="logo-container">
             <img src="/logo.png" alt="Logo" className="logo" />
-
           </div>
           <h1 className="login-title">ENVIRONOVALAB</h1>
-          <h2 className="login-subtitle">INICIAR SESIÓN</h2>
+          <h2 className="login-subtitle"><strong>INICIAR SESIÓN</strong></h2>
         </div>
 
         {error && <div className="login-error">{error}</div>}
@@ -73,7 +76,9 @@ export default function Login() {
             </span>
           </div>
 
-          <button type="submit" className="login-button">Iniciar Sesión</button>
+          <button type="submit" className="login-button" disabled={loading}>
+            <strong>{loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}</strong>
+          </button>
         </form>
 
         <div className="login-links">
