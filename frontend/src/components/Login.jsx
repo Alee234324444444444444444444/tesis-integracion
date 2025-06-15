@@ -10,7 +10,7 @@ export default function Login() {
   const [form, setForm] = useState({ username: '', password: '' })
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState(null)
-  const [loading, setLoading] = useState(false) // 👈 nuevo estado para loading
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
@@ -20,6 +20,7 @@ export default function Login() {
       const res = await axios.post('http://localhost:8000/api/auth/login/', form)
       localStorage.setItem('auth', 'true')
       localStorage.setItem('user', res.data.username)
+      localStorage.setItem('userRole', res.data.is_admin ? 'admin' : 'user') // 👈 guarda el rol
       setError(null)
       navigate('/dashboard')
     } catch (err) {

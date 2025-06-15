@@ -8,10 +8,12 @@ const Dashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem("auth");
     localStorage.removeItem("user");
-    navigate("/login"); // ✅ redirigir sin confirmación ni notificación
+    localStorage.removeItem("userRole"); // también limpia el rol
+    navigate("/login");
   };
 
   const username = localStorage.getItem("user") || "Usuario";
+  const role = localStorage.getItem("userRole"); // Asegúrate de guardar esto al hacer login
 
   return (
     <div className="dashboard-container">
@@ -25,27 +27,22 @@ const Dashboard = () => {
         </div>
 
         <div className="menu">
-          <button
-            className="menu-item"
-            onClick={() => console.log("Ir a Inicio")}
-          >
+          <button className="menu-item" onClick={() => console.log("Ir a Inicio")}>
             Inicio
           </button>
           <button className="menu-item" onClick={() => navigate("/proformas")}>
             Proformas
           </button>
-          <button
-            className="menu-item"
-            onClick={() => console.log("Ir a Informes")}
-          >
+          <button className="menu-item" onClick={() => console.log("Ir a Informes")}>
             Informes
           </button>
-          <button
-            className="menu-item"
-            onClick={() => console.log("Ir a Admin")}
-          >
-            Administrar Documentos
-          </button>
+
+          {/* Solo visible para ADMIN */}
+          {role === "admin" && (
+            <button className="menu-item" onClick={() => navigate("/admin/tipos-muestra")}>
+              Tipos de Muestra
+            </button>
+          )}
         </div>
 
         <button onClick={handleLogout} className="logout-btn">
@@ -88,8 +85,6 @@ const Dashboard = () => {
             </tr>
           </tbody>
         </table>
-
-        
       </div>
     </div>
   );

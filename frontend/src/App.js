@@ -6,6 +6,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ProformaGenerator from "./pages/ProformaGenerator";
+import AdminMuestras from "./pages/AdminMuestras";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
+
         <Route
           path="/dashboard"
           element={
@@ -23,6 +25,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/proformas"
           element={
@@ -31,6 +34,17 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* ✅ Ruta corregida */}
+        <Route
+          path="/admin/tipos-muestra"
+          element={
+            <ProtectedRoute onlyAdmin={true}>
+              <AdminMuestras />
+            </ProtectedRoute>
+          }
+        />
+
         <Route path="/" element={<Login />} />
       </Routes>
     </Router>

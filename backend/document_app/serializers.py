@@ -1,94 +1,132 @@
 from rest_framework import serializers
-from .models import Client, Parameter, Method, Technique, Proforma, Analysis, CompanySettings
+from .models import (
+    Client, Parameter, Method, Technique,
+    Proforma, Analysis, CompanySettings, TipoMuestra
+)
 
-
-class ClientSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Client
-        fields = '__all__'
-        read_only_fields = ('id', 'created_at', 'updated_at')
-
-
-class ParameterSerializer(serializers.ModelSerializer):
-    category_display = serializers.CharField(source='get_category_display', read_only=True)
-    
-    class Meta:
-        model = Parameter
-        fields = ['id', 'name', 'category', 'category_display', 'default_unit', 'default_price', 'is_active']
-        
-
-class MethodSerializer(serializers.ModelSerializer):
-    category_display = serializers.CharField(source='get_category_display', read_only=True)
-    
-    class Meta:
-        model = Method
-        fields = ['id', 'name', 'description', 'category', 'category_display', 'is_active']
-
-
-class TechniqueSerializer(serializers.ModelSerializer):
-    category_display = serializers.CharField(source='get_category_display', read_only=True)
-    
-    class Meta:
-        model = Technique
-        fields = ['id', 'name', 'description', 'category', 'category_display', 'is_active']
-
-
-class AnalysisSerializer(serializers.ModelSerializer):
-    parameter_name = serializers.CharField(source='parameter.name', read_only=True)
-    parameter_category = serializers.CharField(source='parameter.category', read_only=True)
-    method_name = serializers.CharField(source='method.name', read_only=True)
-    technique_name = serializers.CharField(source='technique.name', read_only=True)
-    
-    class Meta:
-        model = Analysis
-        fields = [
-            'id', 'parameter', 'parameter_name', 'parameter_category',
-            'unit', 'method', 'method_name', 'technique', 'technique_name',
-            'unit_price', 'quantity', 'subtotal', 'order'
-        ]
-        read_only_fields = ('subtotal',)
-
-    def validate(self, data):
-        """Valida que el método y técnica sean compatibles con el parámetro"""
-        parameter = data.get('parameter')
-        method = data.get('method')
-        technique = data.get('technique')
-        
-        if parameter and method and parameter.category != method.category:
-            raise serializers.ValidationError(
-                "El método seleccionado no es compatible con la categoría del parámetro"
-            )
-        
-        if parameter and technique and parameter.category != technique.category:
-            raise serializers.ValidationError(
-                "La técnica seleccionada no es compatible con la categoría del parámetro"
-            )
-        
-        return data
-
-
-class ProformaSerializer(serializers.ModelSerializer):
-    client_name = serializers.CharField(source='client.name', read_only=True)
-    client_ruc = serializers.CharField(source='client.ruc', read_only=True)
-    analysis_set = AnalysisSerializer(many=True, read_only=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
-    
-    class Meta:
-        model = Proforma
-        fields = [
-            'id', 'client', 'client_name', 'client_ruc', 'proforma_number',
-            'date', 'status', 'status_display', 'subtotal', 'tax_amount', 'total',
-            'created_at', 'updated_at', 'created_by', 'analysis_set'
-        ]
-        read_only_fields = ('id', 'proforma_number', 'subtotal', 'tax_amount', 'total', 'created_at', 'updated_at')
+class ClientSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    name = serializers.CharField()
+    ruc = serializers.CharField(required=False, allow_blank=True)
+    phone = serializers.CharField(required=False, allow_blank=True)
+    address = serializers.CharField(required=False, allow_blank=True)
+    email = serializers.EmailField(required=False, allow_blank=True)
+    contact_person = serializers.CharField(required=False, allow_blank=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
 
     def create(self, validated_data):
-        """Crea una proforma con número automático"""
-        # Obtener configuración de empresa para generar número
-        try:
-            company_settings = CompanySettings.objects.first()
-        except CompanySettings.DoesNotExist:
-            # Crear configuración por defecto
+        return Client(**validated_data).save()
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+class ParameterSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    name = serializers.CharField()
+    category = serializers.CharField()
+    default_unit = serializers.CharField()
+    default_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    is_active = serializers.BooleanField()
+
+    def create(self, validated_data):
+        return Parameter(**validated_data).save()
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+class MethodSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    name = serializers.CharField()
+    description = serializers.CharField(required=False, allow_blank=True)
+    category = serializers.CharField()
+    is_active = serializers.BooleanField()
+
+    def create(self, validated_data):
+        return Method(**validated_data).save()
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+class TechniqueSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    name = serializers.CharField()
+    description = serializers.CharField(required=False, allow_blank=True)
+    category = serializers.CharField()
+    is_active = serializers.BooleanField()
+
+    def create(self, validated_data):
+        return Technique(**validated_data).save()
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
+
+class AnalysisSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    parameter = serializers.CharField()
+    parameter_name = serializers.CharField(read_only=True)
+    parameter_category = serializers.CharField(read_only=True)
+    unit = serializers.CharField()
+    method = serializers.CharField()
+    method_name = serializers.CharField(read_only=True)
+    technique = serializers.CharField()
+    technique_name = serializers.CharField(read_only=True)
+    unit_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    quantity = serializers.IntegerField()
+    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    order = serializers.IntegerField(required=False)
+
+    def validate(self, data):
+        from .models import Parameter, Method, Technique
+        parameter = Parameter.objects(id=data.get('parameter')).first()
+        method = Method.objects(id=data.get('method')).first()
+        technique = Technique.objects(id=data.get('technique')).first()
+
+        if parameter and method and parameter.category != method.category:
+            raise serializers.ValidationError("El método no es compatible con la categoría del parámetro")
+
+        if parameter and technique and parameter.category != technique.category:
+            raise serializers.ValidationError("La técnica no es compatible con la categoría del parámetro")
+
+        return data
+
+class ProformaSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    client = serializers.CharField()
+    client_name = serializers.CharField(read_only=True)
+    client_ruc = serializers.CharField(read_only=True)
+    proforma_number = serializers.CharField(read_only=True)
+    date = serializers.DateField()
+    status = serializers.CharField()
+    status_display = serializers.CharField(read_only=True)
+    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    tax_amount = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    created_at = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
+    created_by = serializers.CharField()
+    analysis_set = serializers.SerializerMethodField()
+
+    def get_analysis_set(self, obj):
+        from .models import Analysis
+        analyses = Analysis.objects(proforma=obj)
+        return AnalysisSerializer(analyses, many=True).data
+
+    def create(self, validated_data):
+        company_settings = CompanySettings.objects.first()
+        if not company_settings:
             company_settings = CompanySettings.objects.create(
                 company_name="ENVIRONOVALAB",
                 company_address="Dirección por defecto",
@@ -96,66 +134,73 @@ class ProformaSerializer(serializers.ModelSerializer):
                 company_email="info@environovalab.com",
                 company_ruc="0000000000000"
             )
-        
         validated_data['proforma_number'] = company_settings.get_next_proforma_number()
-        return super().create(validated_data)
+        return Proforma(**validated_data).save()
 
-
-class ProformaCreateSerializer(serializers.ModelSerializer):
-    """Serializador específico para crear proformas con análisis"""
-    analysis_data = AnalysisSerializer(many=True, write_only=True)
-    
-    class Meta:
-        model = Proforma
-        fields = [
-            'client', 'date', 'status', 'created_by', 'analysis_data'
-        ]
+class ProformaCreateSerializer(serializers.Serializer):
+    client = serializers.CharField()
+    date = serializers.DateField()
+    status = serializers.CharField()
+    created_by = serializers.CharField()
+    analysis_data = AnalysisSerializer(many=True)
 
     def create(self, validated_data):
         analysis_data = validated_data.pop('analysis_data', [])
-        
-        # Crear la proforma
         proforma = ProformaSerializer().create(validated_data)
-        
-        # Crear los análisis
+
         for i, analysis in enumerate(analysis_data):
             analysis['proforma'] = proforma
             analysis['order'] = i
-            Analysis.objects.create(**analysis)
-        
+            Analysis(**analysis).save()
+
         return proforma
 
+class CompanySettingsSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    company_name = serializers.CharField()
+    company_address = serializers.CharField()
+    company_phone = serializers.CharField()
+    company_email = serializers.EmailField()
+    company_ruc = serializers.CharField()
 
-class CompanySettingsSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CompanySettings
-        fields = '__all__'
+    def create(self, validated_data):
+        return CompanySettings(**validated_data).save()
 
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        return instance
 
-# Serializadores para autocompletado/búsqueda
-class ParameterSearchSerializer(serializers.ModelSerializer):
-    """Serializador ligero para búsquedas de parámetros"""
-    class Meta:
-        model = Parameter
-        fields = ['id', 'name', 'default_unit', 'default_price']
+class ParameterSearchSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    name = serializers.CharField()
+    default_unit = serializers.CharField()
+    default_price = serializers.DecimalField(max_digits=10, decimal_places=2)
 
+class MethodSearchSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    name = serializers.CharField()
 
-class MethodSearchSerializer(serializers.ModelSerializer):
-    """Serializador ligero para búsquedas de métodos"""
-    class Meta:
-        model = Method
-        fields = ['id', 'name']
+class TechniqueSearchSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    name = serializers.CharField()
 
+class ClientSearchSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    name = serializers.CharField()
+    ruc = serializers.CharField()
 
-class TechniqueSearchSerializer(serializers.ModelSerializer):
-    """Serializador ligero para búsquedas de técnicas"""
-    class Meta:
-        model = Technique
-        fields = ['id', 'name']
+class TipoMuestraSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    nombre = serializers.CharField()
+    descripcion = serializers.CharField(required=False, allow_blank=True)
 
+    def create(self, validated_data):
+        return TipoMuestra(**validated_data).save()
 
-class ClientSearchSerializer(serializers.ModelSerializer):
-    """Serializador ligero para búsquedas de clientes"""
-    class Meta:
-        model = Client
-        fields = ['id', 'name', 'ruc']
+    def update(self, instance, validated_data):
+        instance.nombre = validated_data.get('nombre', instance.nombre)
+        instance.descripcion = validated_data.get('descripcion', instance.descripcion)
+        instance.save()
+        return instance
