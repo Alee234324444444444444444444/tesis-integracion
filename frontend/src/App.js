@@ -7,6 +7,8 @@ import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ProformaGenerator from "./pages/ProformaGenerator";
 import AdminMuestras from "./pages/AdminMuestras";
+import AdminAnalisis from "./pages/AdminAnalisis";
+import AdminCatalogoAnalisis from "./pages/AdminCatalogoAnalisis";
 
 function App() {
   return (
@@ -41,6 +43,24 @@ function App() {
           element={
             <ProtectedRoute onlyAdmin={true}>
               <AdminMuestras />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/analisis"
+          element={
+            <ProtectedRoute onlyAdmin={true}>
+              <AdminAnalisis />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/catalogo-analisis"
+          element={
+            <ProtectedRoute onlyAdmin={true}>
+              <AdminCatalogoAnalisis />
             </ProtectedRoute>
           }
         />

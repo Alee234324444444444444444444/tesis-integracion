@@ -43,6 +43,16 @@ const Dashboard = () => {
               Tipos de Muestra
             </button>
           )}
+          {role === "admin" && (
+            <button className="menu-item" onClick={() => navigate("/admin/analisis")}>
+              Gestion Analisis
+            </button>
+          )}
+          {role === "admin" && (
+            <button className="menu-item" onClick={() => navigate("/admin/catalogo-analisis")}>
+              Gestion Catalogo Analisis
+            </button>
+          )}
         </div>
 
         <button onClick={handleLogout} className="logout-btn">

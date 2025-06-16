@@ -1,7 +1,6 @@
-// Archivo: pages/ProformaGenerator.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/ProformaGenerator.css'; // Asegúrate de tener este archivo CSS
+import '../styles/ProformaGenerator.css';
 import Cookies from 'js-cookie';
 
 const ProformaGenerator = () => {
@@ -11,9 +10,24 @@ const ProformaGenerator = () => {
     nombre: '', fecha: '', ruc: '', telefono: '', direccion: '', correo: '', contacto: ''
   });
 
-  const [sections, setSections] = useState({
-    agua: [], emisiones: [], ruido: [], logistica: []
-  });
+  const [catalogo, setCatalogo] = useState({ agua: [], emisiones: [], ruido: [], logistica: [] });
+  const [sections, setSections] = useState({ agua: [], emisiones: [], ruido: [], logistica: [] });
+
+  useEffect(() => {
+    fetchCatalogo();
+  }, []);
+
+  const fetchCatalogo = async () => {
+    const tipos = ["agua", "emisiones", "ruido", "logistica"];
+    const base = 'http://localhost:8000/api/catalogo-analisis/?tipo=';
+    const all = {};
+    for (const tipo of tipos) {
+      const res = await fetch(base + tipo, { credentials: 'include' });
+      const data = await res.json();
+      all[tipo] = data;
+    }
+    setCatalogo(all);
+  };
 
   const handleClientDataChange = (field, value) => {
     setClientData(prev => ({ ...prev, [field]: value }));
@@ -25,112 +39,10 @@ const ProformaGenerator = () => {
   };
 
   const handleSave = async () => {
-  try {
-    // ✅ Paso 1: fuerza a Django a mandar la cookie CSRF
-    await fetch('http://localhost:8000/api/csrf/', {
-      credentials: 'include'
-    });
-
-    // ✅ Paso 2: ahora sí puedes leer el token
-    const csrfToken = Cookies.get('csrftoken');
-
-    if (!csrfToken) {
-      alert("No se pudo obtener el token CSRF");
-      return;
-    }
-
-    const clientPayload = {
-      name: clientData.nombre,
-      ruc: clientData.ruc,
-      phone: clientData.telefono,
-      address: clientData.direccion,
-      email: clientData.correo,
-      contact_person: clientData.contacto
-    };
-
-    // Crear cliente
-    const clientRes = await fetch('http://localhost:8000/api/clients/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken
-      },
-      credentials: 'include',
-      body: JSON.stringify(clientPayload)
-    });
-
-    if (!clientRes.ok) {
-  const error = await clientRes.json();
-  console.error("Error al guardar cliente:", error);
-  alert("Error al guardar cliente: " + JSON.stringify(error));
-  return; // Detiene la ejecución si falla
-}
-
-    const client = await clientRes.json();
-
-    const allAnalyses = [...sections.agua, ...sections.emisiones, ...sections.ruido, ...sections.logistica];
-    const analysisPayload = allAnalyses.map(a => ({
-      parameter: a.parametro,
-      unit: a.unidad,
-      method: a.metodo,
-      technique: a.tecnica,
-      unit_price: parseFloat(a.precio),
-      quantity: parseInt(a.cantidad)
-    }));
-
-    const proformaPayload = {
-      client: client.id,
-      date: clientData.fecha,
-      status: "draft",
-      created_by: localStorage.getItem("user") || "usuario",
-      analysis_data: analysisPayload
-    };
-
-    const proformaRes = await fetch('http://localhost:8000/api/proformas/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken
-      },
-      credentials: 'include',
-      body: JSON.stringify(proformaPayload)
-    });
-
-    if (proformaRes.ok) {
-      const result = await proformaRes.json();
-      alert("Proforma guardada correctamente");
-      console.log(result);
-    } else {
-      const error = await proformaRes.json();
-      alert("Error al guardar: " + JSON.stringify(error));
-    }
-
-  } catch (error) {
-    console.error("Error guardando proforma:", error);
-    alert("Error al guardar la proforma");
-  }
-};
-
-  const handlePreview = async () => {
-  try {
-    const idProforma = prompt("Ingrese ID de la proforma a previsualizar:");
-    if (!idProforma) return;
-
-    const response = await fetch(`http://localhost:8000/api/proformas/${idProforma}/preview/`);
-    const html = await response.text();
-    const previewWindow = window.open('', '_blank');
-    previewWindow.document.open();
-    previewWindow.document.write(html);
-    previewWindow.document.close();
-  } catch (err) {
-    console.error("Error generando preview:", err);
-    alert("Error generando la vista previa");
-  }
-};
-
-  const handlePreviewSinGuardar = async () => {
     try {
+      await fetch('http://localhost:8000/api/csrf/', { credentials: 'include' });
       const csrfToken = Cookies.get('csrftoken');
+      if (!csrfToken) return alert("No se pudo obtener el token CSRF");
 
       const clientPayload = {
         name: clientData.nombre,
@@ -140,6 +52,13 @@ const ProformaGenerator = () => {
         email: clientData.correo,
         contact_person: clientData.contacto
       };
+
+      const clientRes = await fetch('http://localhost:8000/api/clients/', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+        credentials: 'include', body: JSON.stringify(clientPayload)
+      });
+      if (!clientRes.ok) return alert("Error al guardar cliente");
+      const client = await clientRes.json();
 
       const allAnalyses = [...sections.agua, ...sections.emisiones, ...sections.ruido, ...sections.logistica];
       const analysisPayload = allAnalyses.map(a => ({
@@ -151,51 +70,53 @@ const ProformaGenerator = () => {
         quantity: parseInt(a.cantidad)
       }));
 
-      const bodyData = {
-        client_data: clientPayload,
+      const proformaPayload = {
+        client: client.id,
         date: clientData.fecha,
+        status: "draft",
+        created_by: localStorage.getItem("user") || "usuario",
         analysis_data: analysisPayload
       };
 
-      const res = await fetch('http://localhost:8000/api/proformas/preview_temp/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken
-        },
-        credentials: 'include',
-        body: JSON.stringify(bodyData)
+      const proformaRes = await fetch('http://localhost:8000/api/proformas/', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+        credentials: 'include', body: JSON.stringify(proformaPayload)
       });
 
-      const html = await res.text();
-      const previewWindow = window.open('', '_blank');
-      previewWindow.document.open();
-      previewWindow.document.write(html);
-      previewWindow.document.close();
-
-    } catch (err) {
-      console.error("Error al generar vista previa temporal:", err);
-      alert("Error al generar previsualización sin guardar.");
+      if (proformaRes.ok) alert("Proforma guardada correctamente");
+      else alert("Error al guardar la proforma");
+    } catch (error) {
+      console.error("Error guardando proforma:", error);
+      alert("Error al guardar la proforma");
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("auth");
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
-
   const addAnalysis = (type) => {
-    const newEntry = {
-      id: Date.now(), parametro: '', unidad: '', metodo: '', tecnica: '', precio: '', cantidad: 1
-    };
+    const newEntry = { id: Date.now(), catalogoId: '', parametro: '', unidad: '', metodo: '', tecnica: '', precio: '', cantidad: 1 };
     setSections(prev => ({ ...prev, [type]: [...prev[type], newEntry] }));
   };
 
   const updateAnalysis = (type, id, field, value) => {
     setSections(prev => ({
       ...prev,
-      [type]: prev[type].map(item => item.id === id ? { ...item, [field]: value } : item)
+      [type]: prev[type].map(item => {
+        if (item.id === id) {
+          if (field === 'catalogoId') {
+            const found = catalogo[type].find(c => c.id === value);
+            return found ? {
+              ...item,
+              catalogoId: value,
+              parametro: found.parametro,
+              unidad: found.unidad,
+              metodo: found.metodo,
+              tecnica: found.tecnica,
+              precio: found.precio
+            } : item;
+          }
+          return { ...item, [field]: value };
+        }
+        return item;
+      })
     }));
   };
 
@@ -206,24 +127,29 @@ const ProformaGenerator = () => {
         <div key={entry.id} className="analysis-entry">
           <div className="form-grid">
             <div className="form-group">
-              <label>Parámetro</label>
-              <input type="text" value={entry.parametro} onChange={(e) => updateAnalysis(type, entry.id, 'parametro', e.target.value)} />
+              <label>Catálogo</label>
+              <select value={entry.catalogoId} onChange={e => updateAnalysis(type, entry.id, 'catalogoId', e.target.value)}>
+                <option value="">-- Seleccionar --</option>
+                {catalogo[type].map(item => (
+                  <option key={item.id} value={item.id}>{item.parametro} - ${item.precio}</option>
+                ))}
+              </select>
             </div>
             <div className="form-group">
               <label>Unidad</label>
-              <input type="text" value={entry.unidad} onChange={(e) => updateAnalysis(type, entry.id, 'unidad', e.target.value)} />
+              <input type="text" value={entry.unidad} readOnly />
             </div>
             <div className="form-group">
               <label>Método</label>
-              <input type="text" value={entry.metodo} onChange={(e) => updateAnalysis(type, entry.id, 'metodo', e.target.value)} />
+              <input type="text" value={entry.metodo} readOnly />
             </div>
             <div className="form-group">
               <label>Técnica</label>
-              <input type="text" value={entry.tecnica} onChange={(e) => updateAnalysis(type, entry.id, 'tecnica', e.target.value)} />
+              <input type="text" value={entry.tecnica} readOnly />
             </div>
             <div className="form-group">
               <label>Precio</label>
-              <input type="number" value={entry.precio} onChange={(e) => updateAnalysis(type, entry.id, 'precio', e.target.value)} />
+              <input type="number" value={entry.precio} readOnly />
             </div>
             <div className="form-group">
               <label>Cantidad</label>
@@ -251,7 +177,7 @@ const ProformaGenerator = () => {
           <button className="menu-item" onClick={() => console.log("Ir a Informes")}>Informes</button>
           <button className="menu-item" onClick={() => console.log("Ir a Admin")}>Administrar Documentos</button>
         </div>
-        <button onClick={handleLogout} className="logout-btn">Cerrar Sesión</button>
+        <button onClick={() => navigate("/login")} className="logout-btn">Cerrar Sesión</button>
       </div>
       <div className="main">
         <h1 className="title">Generar Proformas</h1>
@@ -296,7 +222,6 @@ const ProformaGenerator = () => {
         <div className="button-group">
           <button className="button gray" onClick={handleNew}>Nuevo</button>
           <button className="button green" onClick={handleSave}>Guardar</button>
-          <button className="button blue" onClick={handlePreviewSinGuardar}>Previsualizar</button>
         </div>
       </div>
     </div>

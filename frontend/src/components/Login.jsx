@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import '../styles/Login.css'
 import axios from 'axios'
+import Cookies from 'js-cookie'
 
 import { FaUser, FaLock } from 'react-icons/fa'
 import { AiOutlineEye, AiOutlineEyeInvisible } from 'react-icons/ai'
@@ -16,14 +17,27 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
+    setError(null)
+
     try {
-      const res = await axios.post('http://localhost:8000/api/auth/login/', form)
+      // Paso 1: obtener token CSRF y establecer la cookie
+      await axios.get('http://localhost:8000/api/csrf/', {
+        withCredentials: true
+      })
+
+      // Paso 2: hacer login con sesión y CSRF
+      const res = await axios.post('http://localhost:8000/api/auth/login/', form, {
+        withCredentials: true
+      })
+
+      // Paso 3: guardar datos en localStorage
       localStorage.setItem('auth', 'true')
       localStorage.setItem('user', res.data.username)
-      localStorage.setItem('userRole', res.data.is_admin ? 'admin' : 'user') // 👈 guarda el rol
-      setError(null)
+      localStorage.setItem('userRole', res.data.is_admin ? 'admin' : 'user')
+
       navigate('/dashboard')
     } catch (err) {
+      console.error("❌ Login error:", err)
       setError('Usuario o contraseña incorrectos')
     } finally {
       setLoading(false)

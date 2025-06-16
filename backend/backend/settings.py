@@ -74,7 +74,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Conexión a MongoDB Atlas
 connect(
     db="tudb",  # Cambia si usas otro nombre
-    host="mongodb+srv://barrionuevoalejandro23:VGKNVTi1U09seFV3@cluster0.viaqx.mongodb.net/tudb?retryWrites=true&w=majority"
+    host="mongodb+srv://maalejandro:Kvg5yoq5dzOFgaMh@cluster0.h2qdhlk.mongodb.net/tudb?retryWrites=true&w=majority"
 )
 
 # Base de datos SQLite para sesiones

@@ -10,6 +10,7 @@ from django.contrib.auth.hashers import make_password, check_password
 import uuid
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib.auth import login
 
 class RegisterView(APIView):
     def post(self, request):
@@ -39,14 +40,14 @@ class LoginView(APIView):
         user = User.objects(username=request.data.get('username')).first()
 
         if user and check_password(request.data.get('password'), user.password):
-            request.session['user'] = user.username
+            request.session['user'] = user.username  # ✅ esto es lo que tú debes usar
             return Response({
                 'msg': 'Login correcto',
                 'username': user.username,
                 'is_admin': user.is_admin
             })
-        return Response({'error': 'Credenciales incorrectas'}, status=400)
 
+        return Response({'error': 'Credenciales incorrectas'}, status=400)
 
 
 class LogoutView(APIView):

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     Client, Parameter, Method, Technique,
-    Proforma, Analysis, CompanySettings, TipoMuestra
+    Proforma, Analysis, CompanySettings, TipoMuestra, AnalisisCatalogo
 )
 
 class ClientSerializer(serializers.Serializer):
@@ -202,5 +202,25 @@ class TipoMuestraSerializer(serializers.Serializer):
     def update(self, instance, validated_data):
         instance.nombre = validated_data.get('nombre', instance.nombre)
         instance.descripcion = validated_data.get('descripcion', instance.descripcion)
+        instance.save()
+        return instance
+
+
+class AnalisisCatalogoSerializer(serializers.Serializer):
+    id = serializers.CharField(read_only=True)
+    tipo = serializers.ChoiceField(choices=AnalisisCatalogo.TIPOS_CHOICES)
+    parametro = serializers.CharField()
+    unidad = serializers.CharField()
+    metodo = serializers.CharField()
+    tecnica = serializers.CharField()
+    precio = serializers.DecimalField(max_digits=10, decimal_places=2)
+    is_active = serializers.BooleanField(default=True)
+
+    def create(self, validated_data):
+        return AnalisisCatalogo(**validated_data).save()
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
         instance.save()
         return instance

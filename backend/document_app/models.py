@@ -122,3 +122,19 @@ class TipoMuestra(Document):
 
     def __str__(self):
         return self.nombre
+    
+
+class AnalisisCatalogo(Document):
+    TIPOS_CHOICES = ("agua", "ruido", "emisiones", "logistica")
+
+    tipo = StringField(required=True, choices=TIPOS_CHOICES)  # Ej: 'agua'
+    parametro = StringField(required=True, max_length=100)
+    unidad = StringField(max_length=50)
+    metodo = StringField(max_length=100)
+    tecnica = StringField(max_length=100)
+    precio = DecimalField(precision=2, required=True)
+    is_active = BooleanField(default=True)
+    created_at = DateTimeField(default=datetime.utcnow)
+
+    def __str__(self):
+        return f"{self.tipo.upper()}: {self.parametro} ({self.metodo})"

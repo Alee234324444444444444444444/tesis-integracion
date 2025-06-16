@@ -1,20 +1,25 @@
+from urllib import request
 from rest_framework import viewsets, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
+from django.views.decorators.csrf import ensure_csrf_cookie
 from mongoengine.queryset.visitor import Q
 from .utils import generate_proforma_preview
-from .models import Client, Parameter, Method, Technique, Proforma, Analysis, CompanySettings, TipoMuestra
+from .models import Client, Parameter, Method, Technique, Proforma, Analysis, CompanySettings, TipoMuestra, AnalisisCatalogo
 from .serializers import (
     ClientSerializer, ParameterSerializer, MethodSerializer, TechniqueSerializer,
     ProformaSerializer, AnalysisSerializer, CompanySettingsSerializer,
     ProformaCreateSerializer, ParameterSearchSerializer, MethodSearchSerializer,
-    TechniqueSearchSerializer, ClientSearchSerializer, TipoMuestraSerializer
+    TechniqueSearchSerializer, ClientSearchSerializer, TipoMuestraSerializer, AnalisisCatalogoSerializer
 )
+from .permissions import IsAdminUserCustom  # Nuevo permiso personalizado
 
 class ClientViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
     def list(self, request):
         queryset = Client.objects()
         serializer = ClientSerializer(queryset, many=True)
@@ -37,10 +42,22 @@ class ClientViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 class ParameterViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
     def list(self, request):
         queryset = Parameter.objects(is_active=True)
         serializer = ParameterSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    def create(self, request):
+        print("SESION ACTUAL:", request.session.get('user'))
+        if not IsAdminUserCustom().has_permission(request, self):
+            return Response({'error': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = ParameterSerializer(data=request.data)
+        if serializer.is_valid():
+            parameter = serializer.save()
+            return Response(ParameterSerializer(parameter).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'])
     def by_category(self, request):
@@ -55,10 +72,21 @@ class ParameterViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 class MethodViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
     def list(self, request):
         queryset = Method.objects(is_active=True)
         serializer = MethodSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    def create(self, request):
+        if not IsAdminUserCustom().has_permission(request, self):
+            return Response({'error': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = MethodSerializer(data=request.data)
+        if serializer.is_valid():
+            method = serializer.save()
+            return Response(MethodSerializer(method).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'])
     def by_category(self, request):
@@ -73,10 +101,21 @@ class MethodViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 class TechniqueViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
     def list(self, request):
         queryset = Technique.objects(is_active=True)
         serializer = TechniqueSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    def create(self, request):
+        if not IsAdminUserCustom().has_permission(request, self):
+            return Response({'error': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = TechniqueSerializer(data=request.data)
+        if serializer.is_valid():
+            technique = serializer.save()
+            return Response(TechniqueSerializer(technique).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'])
     def by_category(self, request):
@@ -91,6 +130,8 @@ class TechniqueViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 class ProformaViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
     def list(self, request):
         queryset = Proforma.objects()
         serializer = ProformaSerializer(queryset, many=True)
@@ -127,10 +168,21 @@ class ProformaViewSet(viewsets.ViewSet):
             return Response({'error': 'Análisis no encontrado'}, status=status.HTTP_404_NOT_FOUND)
 
 class AnalysisViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
     def list(self, request):
         queryset = Analysis.objects()
         serializer = AnalysisSerializer(queryset, many=True)
         return Response(serializer.data)
+
+    def create(self, request):
+        if not IsAdminUserCustom().has_permission(request, self):
+            return Response({'error': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
+        serializer = AnalysisSerializer(data=request.data)
+        if serializer.is_valid():
+            analysis = serializer.save()
+            return Response(AnalysisSerializer(analysis).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['post'])
     def reorder(self, request):
@@ -145,6 +197,8 @@ class AnalysisViewSet(viewsets.ViewSet):
         return Response({'message': 'Orden actualizado exitosamente'})
 
 class CompanySettingsViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
     def list(self, request):
         queryset = CompanySettings.objects()
         serializer = CompanySettingsSerializer(queryset, many=True)
@@ -169,12 +223,16 @@ class CompanySettingsViewSet(viewsets.ViewSet):
             return Response({'error': f'Error obteniendo configuración: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TipoMuestraViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
     def list(self, request):
         queryset = TipoMuestra.objects()
         serializer = TipoMuestraSerializer(queryset, many=True)
         return Response(serializer.data)
 
     def create(self, request):
+        if not IsAdminUserCustom().has_permission(request, self):
+            return Response({'error': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
         serializer = TipoMuestraSerializer(data=request.data)
         if serializer.is_valid():
             tipo = serializer.save()
@@ -189,3 +247,65 @@ class TipoMuestraViewSet(viewsets.ViewSet):
         tipos = TipoMuestra.objects(nombre__icontains=query)[:10]
         serializer = TipoMuestraSerializer(tipos, many=True)
         return Response(serializer.data)
+    
+
+class AnalisisCatalogoViewSet(viewsets.ViewSet):
+    """
+    ViewSet para gestionar análisis predefinidos por tipo (agua, ruido, etc.)
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        """
+        Listar todos los análisis filtrables por tipo o búsqueda.
+        """
+        tipo = request.query_params.get('tipo')
+        q = request.query_params.get('q', '')
+
+        queryset = AnalisisCatalogo.objects(is_active=True)
+
+        if tipo:
+            queryset = queryset.filter(tipo=tipo)
+
+        if q:
+            queryset = queryset.filter(Q(parametro__icontains=q) | Q(metodo__icontains=q) | Q(tecnica__icontains=q))
+
+        serializer = AnalisisCatalogoSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def create(self, request):
+        print("🔍 Sesión activa:", request.session.get("user"))
+        print("🔒 Headers CSRF:", request.META.get("HTTP_X_CSRFTOKEN"))
+        """
+        Crear un nuevo análisis (solo admin).
+        """
+        if not IsAdminUserCustom().has_permission(request, self):
+            return Response({'error': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = AnalisisCatalogoSerializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.save()
+            return Response(AnalisisCatalogoSerializer(instance).data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        """
+        Eliminar un análisis por ID (solo admin).
+        """
+        if not IsAdminUserCustom().has_permission(request, self):
+            return Response({'error': 'No autorizado'}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            item = AnalisisCatalogo.objects.get(id=pk)
+            item.delete()
+            return Response({'message': 'Eliminado correctamente'})
+        except AnalisisCatalogo.DoesNotExist:
+            return Response({'error': 'No encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+
+
+
+@ensure_csrf_cookie
+def csrf_token_view(request):
+    return JsonResponse({'msg': 'CSRF cookie set'})
