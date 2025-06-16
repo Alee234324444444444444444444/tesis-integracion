@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import "../styles/AdminMuestras.css";
 
+// 👉 Función para obtener el token CSRF de las cookies
+const getCSRFToken = () => {
+  const match = document.cookie.match(/csrftoken=([\w-]+)/);
+  return match ? match[1] : null;
+};
+
 export default function AdminMuestras() {
   const navigate = useNavigate();
 
@@ -11,7 +17,9 @@ export default function AdminMuestras() {
 
   const fetchMuestras = async () => {
     try {
-      const res = await axios.get('http://localhost:8000/api/tipos-muestra/');
+      const res = await axios.get('http://localhost:8000/api/tipos-muestra/', {
+        withCredentials: true, // incluye cookies de sesión
+      });
       const data = Array.isArray(res.data) ? res.data : res.data.results || [];
       setMuestras(data);
     } catch (err) {
@@ -23,7 +31,16 @@ export default function AdminMuestras() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post('http://localhost:8000/api/tipos-muestra/', form);
+      await axios.post(
+        'http://localhost:8000/api/tipos-muestra/',
+        form,
+        {
+          headers: {
+            'X-CSRFToken': getCSRFToken(),
+          },
+          withCredentials: true,
+        }
+      );
       setForm({ nombre: '', descripcion: '' });
       fetchMuestras();
     } catch (err) {
@@ -33,7 +50,15 @@ export default function AdminMuestras() {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`http://localhost:8000/api/tipos-muestra/${id}/`);
+      await axios.delete(
+        `http://localhost:8000/api/tipos-muestra/${id}/`,
+        {
+          headers: {
+            'X-CSRFToken': getCSRFToken(),
+          },
+          withCredentials: true,
+        }
+      );
       fetchMuestras();
     } catch (err) {
       console.error('❌ Error eliminando tipo de muestra:', err);
@@ -93,7 +118,12 @@ export default function AdminMuestras() {
                 <strong>{m.nombre}</strong>
                 {m.descripcion && <> - {m.descripcion}</>}
               </div>
-              <button className="adminmuestras-button red" onClick={() => handleDelete(m.id)}>Eliminar</button>
+              <button
+                className="adminmuestras-button red"
+                onClick={() => handleDelete(m.id)}
+              >
+                Eliminar
+              </button>
             </li>
           ))}
         </ul>
