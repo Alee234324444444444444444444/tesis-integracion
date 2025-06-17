@@ -1,132 +1,215 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Cookies from 'js-cookie';
+import {
+  FaTrash, FaEdit, FaFlask, FaMoneyBill, FaRuler,
+  FaClipboardList, FaPen, FaPlus
+} from 'react-icons/fa';
+import "../styles/Dashboard.css";
 import "../styles/AdminMuestras.css";
-
-// 👉 Función para obtener el token CSRF de las cookies
-const getCSRFToken = () => {
-  const match = document.cookie.match(/csrftoken=([\w-]+)/);
-  return match ? match[1] : null;
-};
 
 export default function AdminMuestras() {
   const navigate = useNavigate();
+  const [catalogo, setCatalogo] = useState([]);
+  const [form, setForm] = useState({
+    tipo: '', parametro: '', unidad: '', metodo: '', tecnica: '', precio: ''
+  });
+  const [errors, setErrors] = useState({});
+  const [editId, setEditId] = useState(null);
 
-  const [muestras, setMuestras] = useState([]);
-  const [form, setForm] = useState({ nombre: '', descripcion: '' });
-
-  const fetchMuestras = async () => {
+  const fetchCatalogo = async () => {
     try {
       const res = await axios.get('http://localhost:8000/api/tipos-muestra/', {
-        withCredentials: true, // incluye cookies de sesión
+        withCredentials: true,
+        headers: { 'X-CSRFToken': Cookies.get('csrftoken') }
       });
-      const data = Array.isArray(res.data) ? res.data : res.data.results || [];
-      setMuestras(data);
+      setCatalogo(res.data);
     } catch (err) {
-      console.error('❌ Error cargando tipos de muestra:', err);
-      setMuestras([]);
+      console.error('❌ Error cargando catálogo:', err);
     }
+  };
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        await axios.get('http://localhost:8000/api/csrf/', { withCredentials: true });
+        await fetchCatalogo();
+      } catch (err) {
+        console.error('❌ Error inicial:', err);
+      }
+    };
+    fetchAll();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+    setErrors(prev => ({ ...prev, [name]: '' }));
+  };
+
+  const validate = () => {
+    const newErrors = {};
+    Object.entries(form).forEach(([k, v]) => {
+      if (!v.trim()) newErrors[k] = `⚠️ ${k.charAt(0).toUpperCase() + k.slice(1)} es obligatorio`;
+    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validate()) return;
+
     try {
-      await axios.post(
-        'http://localhost:8000/api/tipos-muestra/',
-        form,
-        {
-          headers: {
-            'X-CSRFToken': getCSRFToken(),
-          },
-          withCredentials: true,
+      await axios.get('http://localhost:8000/api/csrf/', { withCredentials: true });
+      const config = {
+        withCredentials: true,
+        headers: {
+          'X-CSRFToken': Cookies.get('csrftoken'),
+          'Content-Type': 'application/json'
         }
-      );
-      setForm({ nombre: '', descripcion: '' });
-      fetchMuestras();
+      };
+
+      if (editId) {
+        await axios.put(`http://localhost:8000/api/tipos-muestra/${editId}/`, form, config);
+      } else {
+        await axios.post(`http://localhost:8000/api/tipos-muestra/`, form, config);
+      }
+
+      setForm({ tipo: '', parametro: '', unidad: '', metodo: '', tecnica: '', precio: '' });
+      setEditId(null);
+      fetchCatalogo();
     } catch (err) {
-      console.error('❌ Error creando tipo de muestra:', err);
+      console.error('❌ Error al guardar muestra:', err);
     }
   };
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(
-        `http://localhost:8000/api/tipos-muestra/${id}/`,
-        {
-          headers: {
-            'X-CSRFToken': getCSRFToken(),
-          },
-          withCredentials: true,
+      await axios.get('http://localhost:8000/api/csrf/', { withCredentials: true });
+      await axios.delete(`http://localhost:8000/api/tipos-muestra/${id}/`, {
+        withCredentials: true,
+        headers: {
+          'X-CSRFToken': Cookies.get('csrftoken'),
+          'Content-Type': 'application/json'
         }
-      );
-      fetchMuestras();
+      });
+      fetchCatalogo();
     } catch (err) {
-      console.error('❌ Error eliminando tipo de muestra:', err);
+      console.error('❌ Error al eliminar muestra:', err);
     }
   };
 
-  useEffect(() => {
-    fetchMuestras();
-  }, []);
+  const handleEdit = (item) => {
+    setEditId(item.id || item._id?.$oid);
+    setForm({
+      tipo: item.tipo || '',
+      parametro: item.parametro || '',
+      unidad: item.unidad || '',
+      metodo: item.metodo || '',
+      tecnica: item.tecnica || '',
+      precio: item.precio || ''
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("auth");
     localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
     navigate("/login");
   };
 
   return (
-    <div className="adminmuestras-container">
-      <div className="adminmuestras-sidebar">
-        <div className="adminmuestras-logo-section">
-          <div className="adminmuestras-logo">
+    <div className="dashboard-container">
+      <div className="sidebar">
+        <div className="logo-section">
+          <div className="logo">
             <img src="/logo-white.png" alt="Logo" className="logo-white" />
             ENVIRONOVALAB
           </div>
         </div>
-        <div className="adminmuestras-menu">
-          <button className="adminmuestras-menu-item" onClick={() => navigate("/dashboard")}>Inicio</button>
-          <button className="adminmuestras-menu-item" onClick={() => navigate("/proformas")}>Proformas</button>
-          <button className="adminmuestras-menu-item active" onClick={() => navigate("/admin/tipos-muestra")}>Tipos de Muestra</button>
+        <div className="menu">
+          <button className="menu-item" onClick={() => navigate("/dashboard")}>Inicio</button>
+          <button className="menu-item" onClick={() => navigate("/proformas")}>Proformas</button>
+          <button className="menu-item active" onClick={() => navigate("/admin/tipos-muestra")}>Tipos de Muestra</button>
         </div>
-        <button onClick={handleLogout} className="adminmuestras-logout-btn">Cerrar Sesión</button>
+        <button onClick={handleLogout} className="logout-btn">Cerrar Sesión</button>
       </div>
 
-      <div className="adminmuestras-main">
-        <h1 className="adminmuestras-title">Administrar Tipos de Muestra</h1>
-
+      <div className="main-content">
+        <h1 className="section-title">Tipos de Muestra</h1>
         <form onSubmit={handleSubmit} className="adminmuestras-form">
-          <input
-            type="text"
-            placeholder="Nombre del tipo de muestra"
-            value={form.nombre}
-            onChange={e => setForm({ ...form, nombre: e.target.value })}
-            required
-          />
-          <textarea
-            placeholder="Descripción (opcional)"
-            value={form.descripcion}
-            onChange={e => setForm({ ...form, descripcion: e.target.value })}
-          />
-          <button type="submit" className="adminmuestras-button green">Agregar</button>
+          {['tipo', 'parametro', 'unidad', 'metodo', 'tecnica', 'precio'].map((field) => (
+            <div key={field} className="form-field">
+              {errors[field] && <p className="input-error">{errors[field]}</p>}
+              <div className="input-icon-wrapper">
+                {{
+                  tipo: <FaClipboardList />,
+                  parametro: <FaPen />,
+                  unidad: <FaRuler />,
+                  metodo: <FaFlask />,
+                  tecnica: <FaFlask />,
+                  precio: <FaMoneyBill />
+                }[field]}
+                {field === 'tipo' ? (
+                  <select name="tipo" value={form.tipo} onChange={handleChange} required>
+                    <option value="">Seleccionar tipo de muestra</option>
+                    <option value="agua">Agua</option>
+                    <option value="ruido">Ruido</option>
+                    <option value="emisiones">Emisiones</option>
+                    <option value="logistica">Logística</option>
+                  </select>
+                ) : field === 'unidad' ? (
+                  <select name="unidad" value={form.unidad} onChange={handleChange} required>
+                    <option value="">Seleccionar unidad</option>
+                    <option value="mg/l">mg/l</option>
+                    <option value="NMP/100 ml">NMP/100 ml</option>
+                    <option value="AUSENCIA">AUSENCIA</option>
+                    <option value="Presencia/Ausencia">Presencia/Ausencia</option>
+                    <option value="U pH">U pH</option>
+                    <option value="uS/cm">uS/cm</option>
+                  </select>
+                ) : (
+                  <input
+                    name={field}
+                    type={field === 'precio' ? 'number' : 'text'}
+                    step={field === 'precio' ? '0.01' : undefined}
+                    value={form[field]}
+                    onChange={handleChange}
+                    placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                    required
+                  />
+                )}
+              </div>
+            </div>
+          ))}
+          <button type="submit" className="add-button">
+            <FaPlus style={{ marginRight: "6px" }} />
+            {editId ? "Actualizar" : "Agregar"}
+          </button>
         </form>
 
-        <ul className="adminmuestras-list">
-          {muestras.map(m => (
-            <li key={m.id} className="adminmuestras-item">
-              <div>
-                <strong>{m.nombre}</strong>
-                {m.descripcion && <> - {m.descripcion}</>}
+        <div className="adminmuestras-list">
+          <h2>Lista de Tipos de Muestra</h2>
+          <div className="card-container">
+            {catalogo.map((item) => (
+              <div key={item.id || item._id?.$oid} className="card-item">
+                <h3 className="card-title">{item.tipo?.toUpperCase?.()}</h3>
+                <p><strong>Parámetro:</strong> {item.parametro}</p>
+                <p><strong>Unidad:</strong> {item.unidad}</p>
+                <p><strong>Método:</strong> {item.metodo}</p>
+                <p><strong>Técnica:</strong> {item.tecnica}</p>
+                <p><strong>Precio:</strong> ${parseFloat(item.precio).toFixed(2)}</p>
+                <div className="card-actions">
+                  <button className="edit-button" onClick={() => handleEdit(item)}><FaEdit /></button>
+                  <button className="delete-button" onClick={() => handleDelete(item.id || item._id?.$oid)}><FaTrash /></button>
+                </div>
               </div>
-              <button
-                className="adminmuestras-button red"
-                onClick={() => handleDelete(m.id)}
-              >
-                Eliminar
-              </button>
-            </li>
-          ))}
-        </ul>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

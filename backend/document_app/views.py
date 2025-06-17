@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from django_filters.rest_framework import DjangoFilterBackend
 from django.http import HttpResponse
 from mongoengine.queryset.visitor import Q
+from rest_framework.exceptions import NotFound
 from .utils import generate_proforma_preview
 from .models import Client, Parameter, Method, Technique, Proforma, Analysis, CompanySettings, TipoMuestra
 from .serializers import (
@@ -169,6 +170,7 @@ class CompanySettingsViewSet(viewsets.ViewSet):
             return Response({'error': f'Error obteniendo configuración: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TipoMuestraViewSet(viewsets.ViewSet):
+    
     def list(self, request):
         queryset = TipoMuestra.objects()
         serializer = TipoMuestraSerializer(queryset, many=True)
@@ -181,11 +183,39 @@ class TipoMuestraViewSet(viewsets.ViewSet):
             return Response(TipoMuestraSerializer(tipo).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def retrieve(self, request, pk=None):
+        try:
+            tipo = TipoMuestra.objects.get(id=pk)
+            serializer = TipoMuestraSerializer(tipo)
+            return Response(serializer.data)
+        except TipoMuestra.DoesNotExist:
+            raise NotFound('Tipo de muestra no encontrado')
+
+    def update(self, request, pk=None):
+        try:
+            tipo = TipoMuestra.objects.get(id=pk)
+        except TipoMuestra.DoesNotExist:
+            raise NotFound('Tipo de muestra no encontrado')
+
+        serializer = TipoMuestraSerializer(tipo, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        try:
+            tipo = TipoMuestra.objects.get(id=pk)
+            tipo.delete()
+            return Response({'msg': 'Eliminado correctamente'}, status=status.HTTP_204_NO_CONTENT)
+        except TipoMuestra.DoesNotExist:
+            raise NotFound('Tipo de muestra no encontrado')
+
     @action(detail=False, methods=['get'])
     def search(self, request):
         query = request.query_params.get('q', '')
         if not query or len(query) < 2:
             return Response([])
-        tipos = TipoMuestra.objects(nombre__icontains=query)[:10]
+        tipos = TipoMuestra.objects(parametro__icontains=query)[:10]
         serializer = TipoMuestraSerializer(tipos, many=True)
         return Response(serializer.data)

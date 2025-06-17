@@ -117,8 +117,12 @@ class Analysis(Document):
 
 # --- Tipo de Muestra ---
 class TipoMuestra(Document):
-    nombre = StringField(required=True, unique=True, max_length=100)
-    descripcion = StringField()
+    tipo = StringField(required=True)
+    parametro = StringField(required=True)
+    unidad = StringField(required=True)
+    metodo = StringField(required=True)
+    tecnica = StringField(required=True)
+    precio = DecimalField(required=True)
 
     def __str__(self):
-        return self.nombre
+        return self.parametro
