@@ -294,15 +294,9 @@ const updatedFields = {
           </button>
           <button
             className="menu-item"
-            onClick={() => console.log("Ir a Informes")}
+            onClick={() => navigate("/informes")}
           >
             Informes
-          </button>
-          <button
-            className="menu-item"
-            onClick={() => console.log("Ir a Admin")}
-          >
-            Administrar Documentos
           </button>
         </div>
         <button onClick={handleLogout} className="logout-btn">

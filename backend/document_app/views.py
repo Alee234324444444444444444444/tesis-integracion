@@ -73,6 +73,15 @@ class ProformaViewSet(viewsets.ViewSet):
             return Response({'message': 'Análisis eliminado exitosamente'}, status=status.HTTP_200_OK)
         except Analysis.DoesNotExist:
             return Response({'error': 'Análisis no encontrado'}, status=status.HTTP_404_NOT_FOUND)
+        
+    @action(detail=True, methods=['get'])
+    def preview(self, request, pk=None):
+        try:
+            proforma = Proforma.objects.get(id=pk)
+            html = generate_proforma_preview(proforma)
+            return HttpResponse(html, content_type="text/html")
+        except Proforma.DoesNotExist:
+            return Response({'error': 'Proforma no encontrada'}, status=404)
 
 class AnalysisViewSet(viewsets.ViewSet):
     def list(self, request):
@@ -168,7 +177,7 @@ class TipoMuestraViewSet(viewsets.ViewSet):
         return Response(serializer.data)
     
 
-    #
+    #Informes
     @action(detail=True, methods=['get'])
     def informe(self, request, pk=None):
         try:

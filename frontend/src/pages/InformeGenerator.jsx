@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import "../styles/ProformaGenerator.css";
+import { useNavigate } from "react-router-dom";
 
 const InformeGenerator = () => {
+  const navigate = useNavigate();
   const [proformaNumber, setProformaNumber] = useState("");
   const [datosCliente, setDatosCliente] = useState({
     fecha: "",
@@ -14,7 +16,9 @@ const InformeGenerator = () => {
 
   const buscarProforma = async () => {
     try {
-      const res = await fetch(`http://localhost:8000/api/proformas/${proformaNumber}/informe/`);
+      const res = await fetch(
+        `http://localhost:8000/api/proformas/${proformaNumber}/informe/`
+      );
       if (!res.ok) return alert("Proforma no encontrada");
       const data = await res.json();
 
@@ -46,6 +50,12 @@ const InformeGenerator = () => {
     });
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("auth");
+    localStorage.removeItem("user");
+    navigate("/login");
+  };
+
   return (
     <div className="container">
       <div className="sidebar">
@@ -56,12 +66,25 @@ const InformeGenerator = () => {
           </div>
         </div>
         <div className="menu">
-          <button className="menu-item" onClick={() => console.log("Ir a Dashboard")}>Inicio</button>
-          <button className="menu-item" onClick={() => console.log("Ir a Proformas")}>Proformas</button>
-          <button className="menu-item active">Informes</button>
-          <button className="menu-item" onClick={() => console.log("Ir a Documentos")}>Administrar Documentos</button>
+          <button className="menu-item" onClick={() => navigate("/dashboard")}>
+            Inicio
+          </button>
+          <button
+            className="menu-item"
+            onClick={() => navigate("/proformas")}
+          >
+            Proformas
+          </button>
+          <button
+            className="menu-item active"
+            onClick={() => console.log("Ir a Informes")}
+          >
+            Informes
+          </button>
         </div>
-        <button className="logout-btn">Cerrar Sesión</button>
+        <button onClick={handleLogout} className="logout-btn">
+          Cerrar Sesión
+        </button>
       </div>
 
       <div className="main">
@@ -79,7 +102,9 @@ const InformeGenerator = () => {
                   onChange={(e) => setProformaNumber(e.target.value)}
                   placeholder="Ej: PRF-0001"
                 />
-                <button className="button green" onClick={buscarProforma}>Buscar</button>
+                <button className="button green" onClick={buscarProforma}>
+                  Buscar
+                </button>
               </div>
             </div>
 
@@ -89,11 +114,29 @@ const InformeGenerator = () => {
             </div>
             <div className="form-group">
               <label>Muestra tomada por</label>
-              <input type="text" value={datosCliente.tomadoPor} onChange={(e) => setDatosCliente({ ...datosCliente, tomadoPor: e.target.value })} />
+              <input
+                type="text"
+                value={datosCliente.tomadoPor}
+                onChange={(e) =>
+                  setDatosCliente({
+                    ...datosCliente,
+                    tomadoPor: e.target.value,
+                  })
+                }
+              />
             </div>
             <div className="form-group">
               <label>Procedimiento de toma de muestra</label>
-              <input type="text" value={datosCliente.procedimiento} onChange={(e) => setDatosCliente({ ...datosCliente, procedimiento: e.target.value })} />
+              <input
+                type="text"
+                value={datosCliente.procedimiento}
+                onChange={(e) =>
+                  setDatosCliente({
+                    ...datosCliente,
+                    procedimiento: e.target.value,
+                  })
+                }
+              />
             </div>
             <div className="form-group">
               <label>Analizado por</label>
@@ -124,7 +167,9 @@ const InformeGenerator = () => {
                   <input
                     type="text"
                     value={a.resultados}
-                    onChange={(e) => actualizarAnalisis(index, "resultados", e.target.value)}
+                    onChange={(e) =>
+                      actualizarAnalisis(index, "resultados", e.target.value)
+                    }
                   />
                 </div>
                 <div className="form-group">
@@ -132,7 +177,9 @@ const InformeGenerator = () => {
                   <input
                     type="text"
                     value={a.limite}
-                    onChange={(e) => actualizarAnalisis(index, "limite", e.target.value)}
+                    onChange={(e) =>
+                      actualizarAnalisis(index, "limite", e.target.value)
+                    }
                   />
                 </div>
                 <div className="form-group">
@@ -140,7 +187,9 @@ const InformeGenerator = () => {
                   <input
                     type="text"
                     value={a.incertidumbre}
-                    onChange={(e) => actualizarAnalisis(index, "incertidumbre", e.target.value)}
+                    onChange={(e) =>
+                      actualizarAnalisis(index, "incertidumbre", e.target.value)
+                    }
                   />
                 </div>
               </div>
@@ -149,10 +198,16 @@ const InformeGenerator = () => {
         </div>
 
         <div className="button-group">
-          <button className="button green" onClick={() => alert("Guardar informe (a implementar)")}>
+          <button
+            className="button green"
+            onClick={() => alert("Guardar informe (a implementar)")}
+          >
             Guardar
           </button>
-          <button className="button blue" onClick={() => alert("Previsualizar informe (a implementar)")}>
+          <button
+            className="button blue"
+            onClick={() => alert("Previsualizar informe (a implementar)")}
+          >
             Previsualizar
           </button>
         </div>
