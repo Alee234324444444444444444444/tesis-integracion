@@ -90,9 +90,14 @@ class AnalysisSerializer(serializers.Serializer):
 
     def validate(self, data):
         from .models import Parameter, Method, Technique
-        parameter = Parameter.objects(id=data.get('parameter')).first()
-        method = Method.objects(id=data.get('method')).first()
-        technique = Technique.objects(id=data.get('technique')).first()
+
+        parameter_name = data.get('parameter')
+        method_name = data.get('method')
+        technique_name = data.get('technique')
+
+        parameter = Parameter.objects(name=parameter_name).first()
+        method = Method.objects(name=method_name).first()
+        technique = Technique.objects(name=technique_name).first()
 
         if parameter and method and parameter.category != method.category:
             raise serializers.ValidationError("El método no es compatible con la categoría del parámetro")
@@ -124,7 +129,14 @@ class ProformaSerializer(serializers.Serializer):
         analyses = Analysis.objects(proforma=obj)
         return AnalysisSerializer(analyses, many=True).data
 
+    
     def create(self, validated_data):
+        from .models import Parameter, Method, Technique, Analysis, Proforma, CompanySettings
+        from decimal import Decimal
+
+        analysis_data = validated_data.pop('analysis_data', [])
+
+        # Crear configuración por defecto si no existe
         company_settings = CompanySettings.objects.first()
         if not company_settings:
             company_settings = CompanySettings.objects.create(
@@ -134,8 +146,32 @@ class ProformaSerializer(serializers.Serializer):
                 company_email="info@environovalab.com",
                 company_ruc="0000000000000"
             )
+
         validated_data['proforma_number'] = company_settings.get_next_proforma_number()
-        return Proforma(**validated_data).save()
+
+        proforma = Proforma(**validated_data)
+        proforma.save()
+
+        for i, analysis in enumerate(analysis_data):
+            parameter = Parameter.objects(name=analysis['parameter'].strip()).first()
+            method = Method.objects(name=analysis['method'].strip()).first()
+            technique = Technique.objects(name=analysis['technique'].strip()).first()
+
+            if not parameter or not method or not technique:
+                raise serializers.ValidationError("Uno de los elementos no fue encontrado en la base de datos")
+
+            Analysis(
+                proforma=proforma,
+                parameter=parameter,
+                unit=analysis['unit'],
+                method=method,
+                technique=technique,
+                unit_price=Decimal(str(analysis['unit_price'])),
+                quantity=int(analysis['quantity']),
+                order=i
+            ).save()
+
+        return proforma
 
 class ProformaCreateSerializer(serializers.Serializer):
     client = serializers.CharField()
@@ -151,7 +187,25 @@ class ProformaCreateSerializer(serializers.Serializer):
         for i, analysis in enumerate(analysis_data):
             analysis['proforma'] = proforma
             analysis['order'] = i
-            Analysis(**analysis).save()
+
+            # Buscar los objetos reales
+            parameter = Parameter.objects(name=analysis['parameter']).first()
+            method = Method.objects(name=analysis['method']).first()
+            technique = Technique.objects(name=analysis['technique']).first()
+
+            if not parameter or not method or not technique:
+                raise serializers.ValidationError("Uno de los elementos no fue encontrado en la base de datos")
+
+            Analysis(
+                proforma=proforma,
+                parameter=parameter,
+                unit=analysis['unit'],
+                method=method,
+                technique=technique,
+                unit_price=analysis['unit_price'],
+                quantity=analysis['quantity'],
+                order=analysis['order']
+            ).save()
 
         return proforma
 

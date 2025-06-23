@@ -1,4 +1,5 @@
 # Corregido: Todos los modelos convertidos a mongoengine
+from decimal import Decimal
 from mongoengine import (
     Document, StringField, EmailField, DateTimeField, FloatField, 
     BooleanField, ReferenceField, IntField, DecimalField, ListField
@@ -108,7 +109,7 @@ class Analysis(Document):
         self.subtotal = self.unit_price * self.quantity
         super().save(*args, **kwargs)
         self.proforma.subtotal = sum([a.subtotal for a in Analysis.objects(proforma=self.proforma)])
-        self.proforma.tax_amount = self.proforma.subtotal * 0.12
+        self.proforma.tax_amount = self.proforma.subtotal * Decimal("0.12")
         self.proforma.total = self.proforma.subtotal + self.proforma.tax_amount
         self.proforma.save()
 
