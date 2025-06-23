@@ -214,3 +214,23 @@ class TipoMuestraSerializer(serializers.Serializer):
             setattr(instance, attr, value)
         instance.save()
         return instance
+
+#Serializer para informes
+class AnalysisReportSerializer(serializers.Serializer):
+    parameter = serializers.CharField()
+    unit = serializers.CharField()
+    method = serializers.CharField()
+    technique = serializers.CharField()
+    unit_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    quantity = serializers.IntegerField()
+    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+class ProformaReportSerializer(serializers.Serializer):
+    proforma_number = serializers.CharField()
+    date = serializers.DateTimeField()
+    client_name = serializers.CharField()
+    created_by = serializers.CharField()
+    subtotal = serializers.DecimalField(max_digits=10, decimal_places=2)
+    tax_amount = serializers.DecimalField(max_digits=10, decimal_places=2)
+    total = serializers.DecimalField(max_digits=10, decimal_places=2)
+    analysis_data = AnalysisReportSerializer(many=True)

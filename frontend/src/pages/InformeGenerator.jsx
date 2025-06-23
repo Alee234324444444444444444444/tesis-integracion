@@ -1,0 +1,164 @@
+import React, { useState } from "react";
+import "../styles/ProformaGenerator.css";
+
+const InformeGenerator = () => {
+  const [proformaNumber, setProformaNumber] = useState("");
+  const [datosCliente, setDatosCliente] = useState({
+    fecha: "",
+    tomadoPor: "",
+    procedimiento: "",
+    analizadoPor: "",
+  });
+
+  const [analisis, setAnalisis] = useState([]);
+
+  const buscarProforma = async () => {
+    try {
+      const res = await fetch(`http://localhost:8000/api/proformas/${proformaNumber}/informe/`);
+      if (!res.ok) return alert("Proforma no encontrada");
+      const data = await res.json();
+
+      setDatosCliente((prev) => ({
+        ...prev,
+        fecha: data.date.slice(0, 10),
+        analizadoPor: data.created_by,
+      }));
+
+      const analisisMapeado = data.analysis_data.map((item) => ({
+        ...item,
+        resultados: "",
+        incertidumbre: "",
+        limite: "",
+      }));
+
+      setAnalisis(analisisMapeado);
+    } catch (error) {
+      alert("Error al buscar proforma");
+      console.error(error);
+    }
+  };
+
+  const actualizarAnalisis = (index, field, value) => {
+    setAnalisis((prev) => {
+      const copia = [...prev];
+      copia[index][field] = value;
+      return copia;
+    });
+  };
+
+  return (
+    <div className="container">
+      <div className="sidebar">
+        <div className="logo-section">
+          <div className="logo">
+            <img src="/logo-white.png" alt="Logo" className="logo-white" />
+            ENVIRONOVALAB
+          </div>
+        </div>
+        <div className="menu">
+          <button className="menu-item" onClick={() => console.log("Ir a Dashboard")}>Inicio</button>
+          <button className="menu-item" onClick={() => console.log("Ir a Proformas")}>Proformas</button>
+          <button className="menu-item active">Informes</button>
+          <button className="menu-item" onClick={() => console.log("Ir a Documentos")}>Administrar Documentos</button>
+        </div>
+        <button className="logout-btn">Cerrar Sesión</button>
+      </div>
+
+      <div className="main">
+        <h1 className="title">Generar informes</h1>
+
+        <div className="form-card">
+          <h2>Datos Cliente</h2>
+          <div className="form-grid">
+            <div className="form-group full">
+              <label>N° Proforma</label>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <input
+                  type="text"
+                  value={proformaNumber}
+                  onChange={(e) => setProformaNumber(e.target.value)}
+                  placeholder="Ej: PRF-0001"
+                />
+                <button className="button green" onClick={buscarProforma}>Buscar</button>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label>Fecha de Emisión</label>
+              <input type="date" value={datosCliente.fecha} readOnly />
+            </div>
+            <div className="form-group">
+              <label>Muestra tomada por</label>
+              <input type="text" value={datosCliente.tomadoPor} onChange={(e) => setDatosCliente({ ...datosCliente, tomadoPor: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label>Procedimiento de toma de muestra</label>
+              <input type="text" value={datosCliente.procedimiento} onChange={(e) => setDatosCliente({ ...datosCliente, procedimiento: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label>Analizado por</label>
+              <input type="text" value={datosCliente.analizadoPor} readOnly />
+            </div>
+          </div>
+        </div>
+
+        <div className="form-card">
+          <h2>Monitoreo de Agua</h2>
+          {analisis.map((a, index) => (
+            <div key={index} className="analysis-entry">
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>Parámetro</label>
+                  <input type="text" value={a.parameter} readOnly />
+                </div>
+                <div className="form-group">
+                  <label>Unidad</label>
+                  <input type="text" value={a.unit} readOnly />
+                </div>
+                <div className="form-group">
+                  <label>Método/Referencia</label>
+                  <input type="text" value={a.method} readOnly />
+                </div>
+                <div className="form-group">
+                  <label>Resultados</label>
+                  <input
+                    type="text"
+                    value={a.resultados}
+                    onChange={(e) => actualizarAnalisis(index, "resultados", e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Límite</label>
+                  <input
+                    type="text"
+                    value={a.limite}
+                    onChange={(e) => actualizarAnalisis(index, "limite", e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label>Incertidumbre</label>
+                  <input
+                    type="text"
+                    value={a.incertidumbre}
+                    onChange={(e) => actualizarAnalisis(index, "incertidumbre", e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="button-group">
+          <button className="button green" onClick={() => alert("Guardar informe (a implementar)")}>
+            Guardar
+          </button>
+          <button className="button blue" onClick={() => alert("Previsualizar informe (a implementar)")}>
+            Previsualizar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default InformeGenerator;

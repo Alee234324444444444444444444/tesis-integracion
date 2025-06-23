@@ -166,3 +166,39 @@ class TipoMuestraViewSet(viewsets.ViewSet):
         tipos = TipoMuestra.objects(parametro__icontains=query)[:10]
         serializer = TipoMuestraSerializer(tipos, many=True)
         return Response(serializer.data)
+    
+
+    #
+    @action(detail=True, methods=['get'])
+    def informe(self, request, pk=None):
+        try:
+            proforma = Proforma.objects.get(id=pk)
+        except Proforma.DoesNotExist:
+            return Response({'error': 'Proforma no encontrada'}, status=status.HTTP_404_NOT_FOUND)
+
+        analysis_data = Analysis.objects(proforma=proforma)
+
+        data = {
+            'proforma_number': proforma.proforma_number,
+            'date': proforma.date,
+            'client_name': proforma.client.name,
+            'created_by': proforma.created_by,
+            'subtotal': proforma.subtotal,
+            'tax_amount': proforma.tax_amount,
+            'total': proforma.total,
+            'analysis_data': [
+                {
+                    'parameter': a.parameter,
+                    'unit': a.unit,
+                    'method': a.method,
+                    'technique': a.technique,
+                    'unit_price': a.unit_price,
+                    'quantity': a.quantity,
+                    'subtotal': a.subtotal,
+                } for a in analysis_data
+            ]
+        }
+
+        from .serializers import ProformaReportSerializer
+        serializer = ProformaReportSerializer(data)
+        return Response(serializer.data)
