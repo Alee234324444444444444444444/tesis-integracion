@@ -1,10 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../styles/ProformaGenerator.css";
 import { useNavigate } from "react-router-dom";
 
 const InformeGenerator = () => {
   const navigate = useNavigate();
-  const [proformaNumber, setProformaNumber] = useState("");
+
+  const [proformasDisponibles, setProformasDisponibles] = useState([]);
+  const [proformaSeleccionada, setProformaSeleccionada] = useState("");
   const [datosCliente, setDatosCliente] = useState({
     fecha: "",
     tomadoPor: "",
@@ -14,10 +16,24 @@ const InformeGenerator = () => {
 
   const [analisis, setAnalisis] = useState([]);
 
+  useEffect(() => {
+    const cargarProformas = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/api/proformas/");
+        const data = await res.json();
+        setProformasDisponibles(data);
+      } catch (error) {
+        console.error("Error al cargar proformas:", error);
+      }
+    };
+    cargarProformas();
+  }, []);
+
   const buscarProforma = async () => {
+    if (!proformaSeleccionada) return alert("Seleccione una proforma primero");
     try {
       const res = await fetch(
-        `http://localhost:8000/api/proformas/${proformaNumber}/informe/`
+        `http://localhost:8000/api/proformas/${proformaSeleccionada}/informe/`
       );
       if (!res.ok) return alert("Proforma no encontrada");
       const data = await res.json();
@@ -69,18 +85,10 @@ const InformeGenerator = () => {
           <button className="menu-item" onClick={() => navigate("/dashboard")}>
             Inicio
           </button>
-          <button
-            className="menu-item"
-            onClick={() => navigate("/proformas")}
-          >
+          <button className="menu-item" onClick={() => navigate("/proformas")}>
             Proformas
           </button>
-          <button
-            className="menu-item active"
-            onClick={() => console.log("Ir a Informes")}
-          >
-            Informes
-          </button>
+          <button className="menu-item active">Informes</button>
         </div>
         <button onClick={handleLogout} className="logout-btn">
           Cerrar Sesión
@@ -94,18 +102,25 @@ const InformeGenerator = () => {
           <h2>Datos Cliente</h2>
           <div className="form-grid">
             <div className="form-group full">
-              <label>N° Proforma</label>
-              <div style={{ display: "flex", gap: "0.5rem" }}>
-                <input
-                  type="text"
-                  value={proformaNumber}
-                  onChange={(e) => setProformaNumber(e.target.value)}
-                  placeholder="Ej: PRF-0001"
-                />
-                <button className="button green" onClick={buscarProforma}>
-                  Buscar
-                </button>
-              </div>
+              <label>Seleccionar Proforma</label>
+              <select
+                value={proformaSeleccionada}
+                onChange={(e) => setProformaSeleccionada(e.target.value)}
+              >
+                <option value="">-- Seleccione una proforma --</option>
+                {proformasDisponibles.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.proforma_number} - {p.client_name}
+                  </option>
+                ))}
+              </select>
+              <button
+                className="button green"
+                style={{ marginTop: "1rem" }}
+                onClick={buscarProforma}
+              >
+                Buscar
+              </button>
             </div>
 
             <div className="form-group">
