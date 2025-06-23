@@ -59,6 +59,7 @@ const ProformaGenerator = () => {
     setSections((prev) => ({
       ...prev,
       [type]: prev[type].map((item) =>
+
         item.id === id
           ? field
             ? { ...item, [field]: value }
@@ -71,17 +72,22 @@ const ProformaGenerator = () => {
   const handleTipoSeleccionado = (type, id, tipoId) => {
     const tipo = tiposMuestra.find((t) => t.id === tipoId);
     if (!tipo) return;
+    
+    console.log("Tipo seleccionado:", tipo);
+const updatedFields = {
+  tipoId,
+  tipo: tipo.tipo,
+  parametro: tipo.parametro, // ← usa string directamente
+  parametroNombre: tipo.parametro,
+  unidad: tipo.unidad,
+  metodo: tipo.metodo,
+  metodoNombre: tipo.metodo,
+  tecnica: tipo.tecnica,
+  tecnicaNombre: tipo.tecnica,
+  precio: tipo.precio,
+  cantidad: 1,
+};
 
-    const updatedFields = {
-      tipoId,
-      tipo: tipo.tipo,
-      parametro: tipo.parametro,
-      unidad: tipo.unidad,
-      metodo: tipo.metodo,
-      tecnica: tipo.tecnica,
-      precio: tipo.precio,
-      cantidad: 1,
-    };
 
     updateAnalysis(type, id, null, updatedFields);
   };
@@ -226,20 +232,17 @@ const ProformaGenerator = () => {
             </div>
             <div className="form-group">
               <label>Parámetro</label>
-              <input type="text" value={entry.parametro} readOnly />
-            </div>
-            <div className="form-group">
-              <label>Unidad</label>
-              <input type="text" value={entry.unidad} readOnly />
+              <input type="text" value={entry.parametroNombre || ""} readOnly />
             </div>
             <div className="form-group">
               <label>Método</label>
-              <input type="text" value={entry.metodo} readOnly />
+              <input type="text" value={entry.metodoNombre || ""} readOnly />
             </div>
             <div className="form-group">
               <label>Técnica</label>
-              <input type="text" value={entry.tecnica} readOnly />
+              <input type="text" value={entry.tecnicaNombre || ""} readOnly />
             </div>
+
             <div className="form-group">
               <label>Precio</label>
               <input type="number" value={entry.precio} readOnly />

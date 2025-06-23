@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from .models import (
-    Client, Parameter, Method, Technique,
+    Client, 
     Proforma, Analysis, CompanySettings, TipoMuestra
 )
+from decimal import Decimal
 
 class ClientSerializer(serializers.Serializer):
     id = serializers.CharField(read_only=True)
@@ -88,24 +89,7 @@ class AnalysisSerializer(serializers.Serializer):
     subtotal = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     order = serializers.IntegerField(required=False)
 
-    def validate(self, data):
-        from .models import Parameter, Method, Technique
 
-        parameter_name = data.get('parameter')
-        method_name = data.get('method')
-        technique_name = data.get('technique')
-
-        parameter = Parameter.objects(name=parameter_name).first()
-        method = Method.objects(name=method_name).first()
-        technique = Technique.objects(name=technique_name).first()
-
-        if parameter and method and parameter.category != method.category:
-            raise serializers.ValidationError("El método no es compatible con la categoría del parámetro")
-
-        if parameter and technique and parameter.category != technique.category:
-            raise serializers.ValidationError("La técnica no es compatible con la categoría del parámetro")
-
-        return data
 
 class ProformaSerializer(serializers.Serializer):
     id = serializers.CharField(read_only=True)
@@ -125,18 +109,13 @@ class ProformaSerializer(serializers.Serializer):
     analysis_set = serializers.SerializerMethodField()
 
     def get_analysis_set(self, obj):
-        from .models import Analysis
         analyses = Analysis.objects(proforma=obj)
         return AnalysisSerializer(analyses, many=True).data
 
-    
     def create(self, validated_data):
-        from .models import Parameter, Method, Technique, Analysis, Proforma, CompanySettings
-        from decimal import Decimal
-
         analysis_data = validated_data.pop('analysis_data', [])
 
-        # Crear configuración por defecto si no existe
+        # Configuración de la empresa
         company_settings = CompanySettings.objects.first()
         if not company_settings:
             company_settings = CompanySettings.objects.create(
@@ -153,19 +132,12 @@ class ProformaSerializer(serializers.Serializer):
         proforma.save()
 
         for i, analysis in enumerate(analysis_data):
-            parameter = Parameter.objects(name=analysis['parameter'].strip()).first()
-            method = Method.objects(name=analysis['method'].strip()).first()
-            technique = Technique.objects(name=analysis['technique'].strip()).first()
-
-            if not parameter or not method or not technique:
-                raise serializers.ValidationError("Uno de los elementos no fue encontrado en la base de datos")
-
             Analysis(
                 proforma=proforma,
-                parameter=parameter,
+                parameter=analysis['parameter'],
                 unit=analysis['unit'],
-                method=method,
-                technique=technique,
+                method=analysis['method'],
+                technique=analysis['technique'],
                 unit_price=Decimal(str(analysis['unit_price'])),
                 quantity=int(analysis['quantity']),
                 order=i
@@ -182,30 +154,10 @@ class ProformaCreateSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         analysis_data = validated_data.pop('analysis_data', [])
-        proforma = ProformaSerializer().create(validated_data)
-
-        for i, analysis in enumerate(analysis_data):
-            analysis['proforma'] = proforma
-            analysis['order'] = i
-
-            # Buscar los objetos reales
-            parameter = Parameter.objects(name=analysis['parameter']).first()
-            method = Method.objects(name=analysis['method']).first()
-            technique = Technique.objects(name=analysis['technique']).first()
-
-            if not parameter or not method or not technique:
-                raise serializers.ValidationError("Uno de los elementos no fue encontrado en la base de datos")
-
-            Analysis(
-                proforma=proforma,
-                parameter=parameter,
-                unit=analysis['unit'],
-                method=method,
-                technique=technique,
-                unit_price=analysis['unit_price'],
-                quantity=analysis['quantity'],
-                order=analysis['order']
-            ).save()
+        proforma = ProformaSerializer().create({
+            **validated_data,
+            'analysis_data': analysis_data
+        })
 
         return proforma
 

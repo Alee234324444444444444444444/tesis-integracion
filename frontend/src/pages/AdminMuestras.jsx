@@ -50,9 +50,16 @@ export default function AdminMuestras() {
 
   const validate = () => {
     const newErrors = {};
-    Object.entries(form).forEach(([k, v]) => {
-      if (!v.trim()) newErrors[k] = `⚠️ ${k.charAt(0).toUpperCase() + k.slice(1)} es obligatorio`;
-    });
+    for (const field in form) {
+      if (!form[field].trim()) {
+        newErrors[field] = `⚠️ El campo "${field}" es obligatorio.`;
+      }
+    }
+
+    if (form.precio && (isNaN(form.precio) || Number(form.precio) <= 0)) {
+      newErrors.precio = '⚠️ El precio debe ser un número mayor que 0.';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -143,8 +150,8 @@ export default function AdminMuestras() {
         <form onSubmit={handleSubmit} className="adminmuestras-form">
           {['tipo', 'parametro', 'unidad', 'metodo', 'tecnica', 'precio'].map((field) => (
             <div key={field} className="form-field">
-              {errors[field] && <p className="input-error">{errors[field]}</p>}
               <div className="input-icon-wrapper">
+                {errors[field] && <p className="input-error">{errors[field]}</p>}
                 {{
                   tipo: <FaClipboardList />,
                   parametro: <FaPen />,
@@ -154,7 +161,7 @@ export default function AdminMuestras() {
                   precio: <FaMoneyBill />
                 }[field]}
                 {field === 'tipo' ? (
-                  <select name="tipo" value={form.tipo} onChange={handleChange} required>
+                  <select name="tipo" value={form.tipo} onChange={handleChange}>
                     <option value="">Seleccionar tipo de muestra</option>
                     <option value="agua">Agua</option>
                     <option value="ruido">Ruido</option>
@@ -162,7 +169,7 @@ export default function AdminMuestras() {
                     <option value="logistica">Logística</option>
                   </select>
                 ) : field === 'unidad' ? (
-                  <select name="unidad" value={form.unidad} onChange={handleChange} required>
+                  <select name="unidad" value={form.unidad} onChange={handleChange}>
                     <option value="">Seleccionar unidad</option>
                     <option value="mg/l">mg/l</option>
                     <option value="NMP/100 ml">NMP/100 ml</option>
@@ -179,7 +186,6 @@ export default function AdminMuestras() {
                     value={form[field]}
                     onChange={handleChange}
                     placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                    required
                   />
                 )}
               </div>

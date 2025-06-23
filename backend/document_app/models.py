@@ -20,38 +20,7 @@ class Client(Document):
     def __str__(self):
         return self.name
 
-# --- Parámetro ---
-class Parameter(Document):
-    CATEGORY_CHOICES = ('water', 'gas', 'noise', 'logistics')
 
-    name = StringField(required=True, max_length=100)
-    category = StringField(required=True, choices=CATEGORY_CHOICES)
-    default_unit = StringField(max_length=50)
-    default_price = DecimalField(precision=2)
-    is_active = BooleanField(default=True)
-
-    def __str__(self):
-        return f"{self.name} - {self.category}"
-
-# --- Método ---
-class Method(Document):
-    name = StringField(required=True, max_length=100)
-    description = StringField()
-    category = StringField(choices=Parameter.CATEGORY_CHOICES)
-    is_active = BooleanField(default=True)
-
-    def __str__(self):
-        return self.name
-
-# --- Técnica ---
-class Technique(Document):
-    name = StringField(required=True, max_length=100)
-    description = StringField()
-    category = StringField(choices=Parameter.CATEGORY_CHOICES)
-    is_active = BooleanField(default=True)
-
-    def __str__(self):
-        return self.name
 
 # --- Configuración de empresa ---
 class CompanySettings(Document):
@@ -95,10 +64,10 @@ class Proforma(Document):
 # --- Análisis ---
 class Analysis(Document):
     proforma = ReferenceField(Proforma, required=True)
-    parameter = ReferenceField(Parameter, required=True)
+    parameter = StringField(required=True)
     unit = StringField(max_length=50)
-    method = ReferenceField(Method, required=True)
-    technique = ReferenceField(Technique, required=True)
+    method = StringField(required=True)
+    technique = StringField(required=True)
     unit_price = DecimalField(precision=2)
     quantity = IntField(default=1)
     subtotal = DecimalField(precision=2)

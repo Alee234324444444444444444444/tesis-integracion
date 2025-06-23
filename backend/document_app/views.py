@@ -7,12 +7,11 @@ from django.http import HttpResponse
 from mongoengine.queryset.visitor import Q
 from rest_framework.exceptions import NotFound
 from .utils import generate_proforma_preview
-from .models import Client, Parameter, Method, Technique, Proforma, Analysis, CompanySettings, TipoMuestra
+from .models import Client, Proforma, Analysis, CompanySettings, TipoMuestra
 from .serializers import (
-    ClientSerializer, ParameterSerializer, MethodSerializer, TechniqueSerializer,
+    ClientSerializer,
     ProformaSerializer, AnalysisSerializer, CompanySettingsSerializer,
-    ProformaCreateSerializer, ParameterSearchSerializer, MethodSearchSerializer,
-    TechniqueSearchSerializer, ClientSearchSerializer, TipoMuestraSerializer
+    ProformaCreateSerializer, ClientSearchSerializer, TipoMuestraSerializer
 )
 
 class ClientViewSet(viewsets.ViewSet):
@@ -37,59 +36,7 @@ class ClientViewSet(viewsets.ViewSet):
         serializer = ClientSearchSerializer(clients, many=True)
         return Response(serializer.data)
 
-class ParameterViewSet(viewsets.ViewSet):
-    def list(self, request):
-        queryset = Parameter.objects(is_active=True)
-        serializer = ParameterSerializer(queryset, many=True)
-        return Response(serializer.data)
 
-    @action(detail=False, methods=['get'])
-    def by_category(self, request):
-        category = request.query_params.get('category')
-        query = request.query_params.get('q', '')
-        if not category:
-            return Response({'error': 'Categoría requerida'}, status=status.HTTP_400_BAD_REQUEST)
-        parameters = Parameter.objects(category=category, is_active=True)
-        if query:
-            parameters = parameters.filter(name__icontains=query)
-        serializer = ParameterSearchSerializer(parameters[:10], many=True)
-        return Response(serializer.data)
-
-class MethodViewSet(viewsets.ViewSet):
-    def list(self, request):
-        queryset = Method.objects(is_active=True)
-        serializer = MethodSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=['get'])
-    def by_category(self, request):
-        category = request.query_params.get('category')
-        query = request.query_params.get('q', '')
-        if not category:
-            return Response({'error': 'Categoría requerida'}, status=status.HTTP_400_BAD_REQUEST)
-        methods = Method.objects(category=category, is_active=True)
-        if query:
-            methods = methods.filter(name__icontains=query)
-        serializer = MethodSearchSerializer(methods[:10], many=True)
-        return Response(serializer.data)
-
-class TechniqueViewSet(viewsets.ViewSet):
-    def list(self, request):
-        queryset = Technique.objects(is_active=True)
-        serializer = TechniqueSerializer(queryset, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=['get'])
-    def by_category(self, request):
-        category = request.query_params.get('category')
-        query = request.query_params.get('q', '')
-        if not category:
-            return Response({'error': 'Categoría requerida'}, status=status.HTTP_400_BAD_REQUEST)
-        techniques = Technique.objects(category=category, is_active=True)
-        if query:
-            techniques = techniques.filter(name__icontains=query)
-        serializer = TechniqueSearchSerializer(techniques[:10], many=True)
-        return Response(serializer.data)
 
 class ProformaViewSet(viewsets.ViewSet):
     def list(self, request):
