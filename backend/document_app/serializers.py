@@ -97,7 +97,7 @@ class ProformaSerializer(serializers.Serializer):
     client_name = serializers.CharField(read_only=True)
     client_ruc = serializers.CharField(read_only=True)
     proforma_number = serializers.CharField(read_only=True)
-    date = serializers.DateField()
+    date = serializers.DateTimeField()
     status = serializers.CharField()
     status_display = serializers.CharField(read_only=True)
     subtotal = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
