@@ -205,3 +205,93 @@
 .add-analysis-btn:hover {
   background-color: #047857;
 }
+
+
+.my-toast-container {
+  position: fixed;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  pointer-events: none;
+}
+
+.my-toast {
+  min-width: 320px;
+  background: #222;
+  color: #fff;
+  padding: 14px 24px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  font-size: 16px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  opacity: 0.98;
+  pointer-events: all;
+  animation: fadeInOut 3.5s;
+}
+
+.my-toast.success { background: #16c784; color: #fff; }
+.my-toast.error { background: #e74c3c; color: #fff; }
+.my-toast.info { background: #218cfa; color: #fff; }
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-30px);}
+  10% { opacity: 1; transform: translateY(0);}
+  90% { opacity: 1; transform: translateY(0);}
+  100% { opacity: 0; transform: translateY(-30px);}
+}
+
+/* Botones */
+.button {
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 8px 18px;
+  margin-right: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background .2s, box-shadow .2s;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.07);
+  outline: none;
+  margin-bottom: 8px;
+}
+.button.gray { background: #636e72; color: #fff; }
+.button.gray:hover { background: #353b48; }
+
+.button.orange { background: #ffa500; color: #fff; }
+.button.orange:hover { background: #ff8c00; }
+
+.button.green { background: #23be68; color: #fff; }
+.button.green:hover { background: #168345; }
+
+.button.blue { background: #218cfa; color: #fff; }
+.button.blue:hover { background: #1162ab; }
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px 2px;
+}
+
+.add-analysis-btn {
+  background: #16c784;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  margin-top: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+}
+.add-analysis-btn:hover {
+  background: #10b981;
+}

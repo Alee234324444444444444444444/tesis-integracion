@@ -33,7 +33,7 @@ const Dashboard = () => {
           <button className="menu-item" onClick={() => navigate("/proformas")}>
             Proformas
           </button>
-          <button className="menu-item" onClick={() => console.log("Ir a Informes")}>
+          <button className="menu-item" onClick={() => navigate("/informes")}>
             Informes
           </button>
 

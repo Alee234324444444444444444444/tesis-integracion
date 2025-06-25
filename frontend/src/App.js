@@ -7,6 +7,7 @@ import ForgotPassword from "./components/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import ProformaGenerator from "./pages/ProformaGenerator";
 import AdminMuestras from "./pages/AdminMuestras";
+import InformeGenerator from "./pages/InformeGenerator";
 
 function App() {
   return (
@@ -35,12 +36,20 @@ function App() {
           }
         />
 
-        {/* ✅ Ruta corregida */}
         <Route
           path="/admin/tipos-muestra"
           element={
             <ProtectedRoute onlyAdmin={true}>
               <AdminMuestras />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/informes"
+          element={
+            <ProtectedRoute>
+              <InformeGenerator />
             </ProtectedRoute>
           }
         />
