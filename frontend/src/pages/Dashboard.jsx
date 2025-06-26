@@ -13,7 +13,7 @@ const Dashboard = () => {
   };
 
   const username = localStorage.getItem("user") || "Usuario";
-  const role = localStorage.getItem("userRole"); // Asegúrate de guardar esto al hacer login
+  const role = localStorage.getItem("userRole");
 
   return (
     <div className="dashboard-container">
@@ -27,21 +27,22 @@ const Dashboard = () => {
         </div>
 
         <div className="menu">
-          <button className="menu-item" onClick={() => console.log("Ir a Inicio")}>
+          <button className="menu-item active" onClick={() => navigate("/dashboard")}>
             Inicio
           </button>
-          <button className="menu-item" onClick={() => navigate("/proformas")}>
-            Proformas
-          </button>
-          <button className="menu-item" onClick={() => navigate("/informes")}>
-            Informes
-          </button>
+          <button className="menu-item" onClick={() => navigate("/proformas")}>Proformas</button>
+          <button className="menu-item" onClick={() => navigate("/informes")}>Informes</button>
 
           {/* Solo visible para ADMIN */}
           {role === "admin" && (
-            <button className="menu-item" onClick={() => navigate("/admin/tipos-muestra")}>
-              Tipos de Muestra
-            </button>
+            <>
+              <button className="menu-item" onClick={() => navigate("/admin/tipos-muestra")}>
+                Tipos de Muestra
+              </button>
+              <button className="menu-item" onClick={() => navigate("/admin/usuarios")}>
+                Usuarios
+              </button>
+            </>
           )}
         </div>
 

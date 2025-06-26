@@ -1,23 +1,30 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./components/Login";
 import Register from "./components/Register";
-import Dashboard from "./pages/Dashboard";
-import ProtectedRoute from "./components/ProtectedRoute";
 import ForgotPassword from "./components/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+import Dashboard from "./pages/Dashboard";
 import ProformaGenerator from "./pages/ProformaGenerator";
-import AdminMuestras from "./pages/AdminMuestras";
 import InformeGenerator from "./pages/InformeGenerator";
+import AdminMuestras from "./pages/AdminMuestras";
+import UserAdmin from "./pages/UserAdmin";
+import ResetPassword from "./pages/ResetPassword";
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Ruta por defecto */}
+        <Route path="/" element={<Login />} />
+
+        {/* Rutas públicas */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
 
+        {/* Rutas protegidas */}
         <Route
           path="/dashboard"
           element={
@@ -37,6 +44,16 @@ function App() {
         />
 
         <Route
+          path="/informes"
+          element={
+            <ProtectedRoute>
+              <InformeGenerator />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Rutas solo para administradores */}
+        <Route
           path="/admin/tipos-muestra"
           element={
             <ProtectedRoute onlyAdmin={true}>
@@ -46,15 +63,13 @@ function App() {
         />
 
         <Route
-          path="/informes"
+          path="/admin/usuarios"
           element={
-            <ProtectedRoute>
-              <InformeGenerator />
+            <ProtectedRoute onlyAdmin={true}>
+              <UserAdmin />
             </ProtectedRoute>
           }
         />
-
-        <Route path="/" element={<Login />} />
       </Routes>
     </Router>
   );

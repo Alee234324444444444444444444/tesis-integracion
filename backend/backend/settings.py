@@ -73,7 +73,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 # Conexión a MongoDB Atlas
 connect(
-    db="tudb",  # Cambia si usas otro nombre
+    db="environovalabdb",  # Cambia si usas otro nombre
     host="mongodb+srv://barrionuevoalejandro23:VGKNVTi1U09seFV3@cluster0.viaqx.mongodb.net/tudb?retryWrites=true&w=majority"
 )
 

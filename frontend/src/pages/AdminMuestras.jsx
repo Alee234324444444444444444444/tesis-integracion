@@ -140,7 +140,9 @@ export default function AdminMuestras() {
         <div className="menu">
           <button className="menu-item" onClick={() => navigate("/dashboard")}>Inicio</button>
           <button className="menu-item" onClick={() => navigate("/proformas")}>Proformas</button>
+          <button className="menu-item" onClick={() => navigate("/informes")}>Informes</button>
           <button className="menu-item active" onClick={() => navigate("/admin/tipos-muestra")}>Tipos de Muestra</button>
+          <button className="menu-item" onClick={() => navigate("/admin/usuarios")}>Usuarios</button>
         </div>
         <button onClick={handleLogout} className="logout-btn">Cerrar Sesión</button>
       </div>

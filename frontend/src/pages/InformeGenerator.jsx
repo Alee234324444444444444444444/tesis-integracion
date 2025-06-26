@@ -22,6 +22,7 @@ import "../styles/InformeGenerator.css";
 
 const InformeGenerator = () => {
   const navigate = useNavigate();
+  const role = localStorage.getItem("userRole");
   const [notifications, setNotifications] = useState([]);
   const [query, setQuery] = useState("");
   const [proformas, setProformas] = useState([]);
@@ -192,6 +193,18 @@ const InformeGenerator = () => {
             <button className="menu-item" onClick={() => navigate("/dashboard")}>Inicio</button>
             <button className="menu-item" onClick={() => navigate("/proformas")}>Proformas</button>
             <button className="menu-item active">Informes</button>
+            
+            {role === "admin" && (
+              <>
+                <button className="menu-item" onClick={() => navigate("/admin/tipos-muestra")}>
+                  Tipos de Muestra
+                </button>
+                <button className="menu-item" onClick={() => navigate("/admin/usuarios")}>
+                  Usuarios
+                </button>
+              </>
+            )}
+
           </div>
           <button className="logout-btn" onClick={handleLogout}>Cerrar Sesión</button>
         </div>
