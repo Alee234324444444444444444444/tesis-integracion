@@ -100,6 +100,21 @@ class UserAdminViewSet(ViewSet):
             for u in users
         ])
 
+    def create(self, request):
+        data = request.data
+        if not data.get("username") or not data.get("email") or not data.get("password"):
+            return Response({'error': 'Todos los campos son obligatorios'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User(
+            username=data["username"],
+            email=data["email"],
+            password=make_password(data["password"]),  # 🔒 Cifra la contraseña aquí
+            is_admin=data.get("is_admin", False),
+            is_active=True
+        )
+        user.save()
+        return Response({'msg': 'Usuario creado correctamente'}, status=status.HTTP_201_CREATED)
+
     @action(detail=True, methods=['post'])
     def update_role(self, request, pk=None):
         user = User.objects(id=pk).first()
@@ -117,3 +132,4 @@ class UserAdminViewSet(ViewSet):
         user.is_active = not user.is_active
         user.save()
         return Response({'msg': f'Usuario ahora está {"activo" if user.is_active else "inactivo"}'})
+

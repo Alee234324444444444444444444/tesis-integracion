@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import Cookies from "js-cookie";
 import {
   CheckCircle,
   AlertCircle,
@@ -7,6 +9,12 @@ import {
   Shield,
   ToggleLeft,
   ToggleRight,
+  UserPlus,
+  XCircle,
+  Save,
+  Mail,
+  Lock,
+  User
 } from "lucide-react";
 import "../styles/UserAdmin.css";
 
@@ -14,6 +22,13 @@ const UserAdmin = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [notifications, setNotifications] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    is_admin: false,
+  });
 
   let authUser = null;
   try {
@@ -32,11 +47,22 @@ const UserAdmin = () => {
     }, time);
   };
 
+  const refreshCsrf = async () => {
+    try {
+      await axios.get("http://localhost:8000/api/csrf/", { withCredentials: true });
+    } catch (err) {
+      console.error("❌ No se pudo obtener CSRF token:", err);
+    }
+  };
+
   const fetchUsers = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/auth/admin/users/");
-      const data = await res.json();
-      setUsers(data);
+      await axios.get("http://localhost:8000/api/csrf/", { withCredentials: true });
+      const res = await axios.get("http://localhost:8000/api/auth/admin/users/", {
+        withCredentials: true,
+        headers: { "X-CSRFToken": Cookies.get("csrftoken") },
+      });
+      setUsers(res.data);
     } catch {
       showNotification("error", "Error al obtener usuarios");
     }
@@ -44,11 +70,15 @@ const UserAdmin = () => {
 
   const toggleAdmin = async (id, is_admin) => {
     try {
-      await fetch(`http://localhost:8000/api/auth/admin/users/${id}/update_role/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_admin: !is_admin }),
-      });
+      await refreshCsrf();
+      await axios.post(
+        `http://localhost:8000/api/auth/admin/users/${id}/update_role/`,
+        { is_admin: !is_admin },
+        {
+          withCredentials: true,
+          headers: { "X-CSRFToken": Cookies.get("csrftoken") },
+        }
+      );
       showNotification("success", "Rol actualizado");
       fetchUsers();
     } catch {
@@ -58,9 +88,15 @@ const UserAdmin = () => {
 
   const toggleActivo = async (id) => {
     try {
-      await fetch(`http://localhost:8000/api/auth/admin/users/${id}/toggle_active/`, {
-        method: "POST",
-      });
+      await refreshCsrf();
+      await axios.post(
+        `http://localhost:8000/api/auth/admin/users/${id}/toggle_active/`,
+        {},
+        {
+          withCredentials: true,
+          headers: { "X-CSRFToken": Cookies.get("csrftoken") },
+        }
+      );
       showNotification("success", "Estado actualizado");
       fetchUsers();
     } catch {
@@ -72,6 +108,45 @@ const UserAdmin = () => {
     localStorage.removeItem("auth");
     localStorage.removeItem("user");
     navigate("/login");
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleUserCreate = async () => {
+    const { username, email, password, is_admin } = formData;
+    if (!username || !email || !password) {
+      showNotification("error", "Todos los campos son obligatorios");
+      return;
+    }
+
+    try {
+      await refreshCsrf();
+      await axios.post(
+        "http://localhost:8000/api/auth/admin/users/",
+        { username, email, password, is_admin },
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": Cookies.get("csrftoken"),
+          },
+        }
+      );
+
+      showNotification("success", "Usuario creado");
+      setFormData({ username: "", email: "", password: "", is_admin: false });
+      setShowModal(false);
+      fetchUsers();
+    } catch (err) {
+      console.error("Error al crear usuario:", err);
+      showNotification("error", "Error al crear usuario");
+    }
   };
 
   useEffect(() => {
@@ -110,7 +185,16 @@ const UserAdmin = () => {
         </div>
 
         <div className="ua-main">
-          <h1 className="ua-title">Administrar Usuarios</h1>
+          <div className="ua-title-button-bar">
+            <h1 className="ua-title">Administrar Usuarios</h1>
+            <div className="ua-button-bar">
+              <button className="ua-create-btn" onClick={() => setShowModal(true)}>
+                <UserPlus size={18} />
+                Añadir Usuario
+              </button>
+            </div>
+          </div>
+
           <div className="ua-form-card">
             <table className="ua-table">
               <thead>
@@ -168,6 +252,61 @@ const UserAdmin = () => {
           </div>
         </div>
       </div>
+
+      {showModal && (
+        <div className="ua-modal-overlay">
+          <div className="ua-modal">
+            <h3>Nuevo Usuario</h3>
+            <div className="ua-input-wrapper">
+              <User className="ua-input-icon" size={18} />
+              <input
+                name="username"
+                type="text"
+                placeholder="Nombre de usuario"
+                value={formData.username}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="ua-input-wrapper">
+              <Mail className="ua-input-icon" size={18} />
+              <input
+                name="email"
+                type="email"
+                placeholder="Correo"
+                value={formData.email}
+                onChange={handleInputChange}
+              />
+            </div>
+            <div className="ua-input-wrapper">
+              <Lock className="ua-input-icon" size={18} />
+              <input
+                name="password"
+                type="password"
+                placeholder="Contraseña"
+                value={formData.password}
+                onChange={handleInputChange}
+              />
+            </div>
+            <label>
+              <input
+                name="is_admin"
+                type="checkbox"
+                checked={formData.is_admin}
+                onChange={handleInputChange}
+              />
+              ¿Es administrador?
+            </label>
+            <div className="ua-modal-actions">
+              <button className="ua-button red" onClick={() => setShowModal(false)}>
+                <XCircle size={14} /> Cancelar
+              </button>
+              <button className="ua-button green" onClick={handleUserCreate}>
+                <Save size={14} /> Guardar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
