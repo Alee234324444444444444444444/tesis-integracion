@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import "../styles/ProformaGenerator.css";
 import Cookies from "js-cookie";
 import { CheckCircle, AlertCircle, Info, Trash2, FileDown } from "lucide-react";
+import Sidebar from "../components/Sidebar";
 
 const ProformaGenerator = () => {
-  const navigate = useNavigate();
-  const role = localStorage.getItem("userRole");
 
   // Notificaciones tipo toast stack (apiladas arriba)
   const [notifications, setNotifications] = useState([]);
@@ -302,13 +300,6 @@ const ProformaGenerator = () => {
     </div>
   );
 
-  // --- Logout ---
-  const handleLogout = () => {
-    localStorage.removeItem("auth");
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
-
   // --- Render ---
   return (
     <>
@@ -325,45 +316,7 @@ const ProformaGenerator = () => {
       </div>
 
       <div className="container">
-        <div className="sidebar">
-          <div className="logo-section">
-            <div className="logo">
-              <img src="/logo-white.png" alt="Logo" className="logo-white" />
-              ENVIRONOVALAB
-            </div>
-          </div>
-          <div className="menu">
-            <button className="menu-item" onClick={() => navigate("/dashboard")}>
-              Inicio
-            </button>
-            <button
-              className="menu-item active"
-              onClick={() => navigate("/proformas")}
-            >
-              Proformas
-            </button>
-            <button className="menu-item" onClick={() => navigate("/informes")}>
-              Informes
-            </button>
-      
-
-          {/* Solo visible para ADMIN */}
-          {role === "admin" && (
-            <>
-              <button className="menu-item" onClick={() => navigate("/admin/tipos-muestra")}>
-                Tipos de Muestra
-              </button>
-              <button className="menu-item" onClick={() => navigate("/admin/usuarios")}>
-                Usuarios
-              </button>
-            </>
-          )}
-
-          </div>
-          <button onClick={handleLogout} className="logout-btn">
-            Cerrar Sesión
-          </button>
-        </div>
+        <Sidebar />
         <div className="main">
           <h1 className="title">Generar Proformas</h1>
           <div className="form-card">

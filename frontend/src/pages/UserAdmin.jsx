@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Cookies from "js-cookie";
 import {
@@ -17,9 +16,9 @@ import {
   User
 } from "lucide-react";
 import "../styles/UserAdmin.css";
+import Sidebar from "../components/Sidebar";
 
 const UserAdmin = () => {
-  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [notifications, setNotifications] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -104,12 +103,6 @@ const UserAdmin = () => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("auth");
-    localStorage.removeItem("user");
-    navigate("/login");
-  };
-
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -167,22 +160,7 @@ const UserAdmin = () => {
       </div>
 
       <div className="ua-container">
-        <div className="ua-sidebar">
-          <div className="ua-logo-section">
-            <div className="ua-logo">
-              <img src="/logo-white.png" alt="Logo" className="ua-logo-white" />
-              ENVIRONOVALAB
-            </div>
-          </div>
-          <div className="ua-menu">
-            <button className="ua-menu-item" onClick={() => navigate("/dashboard")}>Inicio</button>
-            <button className="ua-menu-item" onClick={() => navigate("/proformas")}>Proformas</button>
-            <button className="ua-menu-item" onClick={() => navigate("/informes")}>Informes</button>
-            <button className="ua-menu-item" onClick={() => navigate("/admin/tipos-muestra")}>Tipos de Muestra</button>
-            <button className="ua-menu-item active" onClick={() => navigate("/admin/usuarios")}>Usuarios</button>
-          </div>
-          <button className="ua-logout-btn" onClick={handleLogout}>Cerrar Sesión</button>
-        </div>
+        <Sidebar />
 
         <div className="ua-main">
           <div className="ua-title-button-bar">

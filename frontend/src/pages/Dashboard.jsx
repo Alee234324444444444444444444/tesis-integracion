@@ -1,56 +1,14 @@
 import React from "react";
 import "../styles/Dashboard.css";
-import { useNavigate } from "react-router-dom";
+import Sidebar from "../components/Sidebar";
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    localStorage.removeItem("auth");
-    localStorage.removeItem("user");
-    localStorage.removeItem("userRole"); // también limpia el rol
-    navigate("/login");
-  };
 
   const username = localStorage.getItem("user") || "Usuario";
-  const role = localStorage.getItem("userRole");
 
   return (
     <div className="dashboard-container">
-      {/* Sidebar */}
-      <div className="sidebar">
-        <div className="logo-section">
-          <div className="logo">
-            <img src="/logo-white.png" alt="Logo" className="logo-white" />
-            ENVIRONOVALAB
-          </div>
-        </div>
-
-        <div className="menu">
-          <button className="menu-item active" onClick={() => navigate("/dashboard")}>
-            Inicio
-          </button>
-          <button className="menu-item" onClick={() => navigate("/proformas")}>Proformas</button>
-          <button className="menu-item" onClick={() => navigate("/informes")}>Informes</button>
-
-          {/* Solo visible para ADMIN */}
-          {role === "admin" && (
-            <>
-              <button className="menu-item" onClick={() => navigate("/admin/tipos-muestra")}>
-                Tipos de Muestra
-              </button>
-              <button className="menu-item" onClick={() => navigate("/admin/usuarios")}>
-                Usuarios
-              </button>
-            </>
-          )}
-        </div>
-
-        <button onClick={handleLogout} className="logout-btn">
-          Cerrar Sesión
-        </button>
-      </div>
-
+      <Sidebar />
       {/* Main Content */}
       <div className="main-content">
         <div className="user-info">

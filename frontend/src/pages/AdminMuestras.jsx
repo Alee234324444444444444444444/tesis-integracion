@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import {
@@ -8,9 +7,9 @@ import {
 } from 'react-icons/fa';
 import "../styles/Dashboard.css";
 import "../styles/AdminMuestras.css";
+import Sidebar from '../components/Sidebar';
 
 export default function AdminMuestras() {
-  const navigate = useNavigate();
   const [catalogo, setCatalogo] = useState([]);
   const [form, setForm] = useState({
     tipo: '', parametro: '', unidad: '', metodo: '', tecnica: '', precio: ''
@@ -121,31 +120,9 @@ export default function AdminMuestras() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("auth");
-    localStorage.removeItem("user");
-    localStorage.removeItem("userRole");
-    navigate("/login");
-  };
-
   return (
     <div className="dashboard-container">
-      <div className="sidebar">
-        <div className="logo-section">
-          <div className="logo">
-            <img src="/logo-white.png" alt="Logo" className="logo-white" />
-            ENVIRONOVALAB
-          </div>
-        </div>
-        <div className="menu">
-          <button className="menu-item" onClick={() => navigate("/dashboard")}>Inicio</button>
-          <button className="menu-item" onClick={() => navigate("/proformas")}>Proformas</button>
-          <button className="menu-item" onClick={() => navigate("/informes")}>Informes</button>
-          <button className="menu-item active" onClick={() => navigate("/admin/tipos-muestra")}>Tipos de Muestra</button>
-          <button className="menu-item" onClick={() => navigate("/admin/usuarios")}>Usuarios</button>
-        </div>
-        <button onClick={handleLogout} className="logout-btn">Cerrar Sesión</button>
-      </div>
+      <Sidebar />
 
       <div className="main-content">
         <h1 className="section-title">Tipos de Muestra</h1>
