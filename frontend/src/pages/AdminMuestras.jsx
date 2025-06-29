@@ -200,7 +200,7 @@ export default function AdminMuestras() {
 
         <form onSubmit={handleSubmit} className="adminmuestras-form">
           {['tipo', 'parametro', 'unidad', 'metodo', 'tecnica', 'precio'].map(renderInput)}
-          <div className="button-group">
+          <div className="button-agree">
             <button type="submit" className="add-button">
               <Plus size={18} />
               <strong>{editId ? 'Actualizar' : 'Agregar'}</strong>
