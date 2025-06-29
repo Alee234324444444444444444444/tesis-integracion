@@ -17,7 +17,7 @@ export default function ResetPassword() {
     e.preventDefault()
     setLoading(true) 
     try {
-      const res = await axios.post(`http://localhost:8000/api/auth/reset-password/${token}/`, {
+      const res = await axios.post(`http://localhost:8000/api/reset-password/${token}/`, {
         password
       })
       setMessage(res.data.msg)

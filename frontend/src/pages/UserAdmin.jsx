@@ -57,7 +57,7 @@ const UserAdmin = () => {
   const fetchUsers = useCallback(async () => {
     try {
       await axios.get("http://localhost:8000/api/csrf/", { withCredentials: true });
-      const res = await axios.get("http://localhost:8000/api/auth/admin/users/", {
+      const res = await axios.get("http://localhost:8000/api/admin/users/", {
         withCredentials: true,
         headers: { "X-CSRFToken": Cookies.get("csrftoken") },
       });
@@ -71,7 +71,7 @@ const UserAdmin = () => {
     try {
       await refreshCsrf();
       await axios.post(
-        `http://localhost:8000/api/auth/admin/users/${id}/update_role/`,
+        `http://localhost:8000/api/admin/users/${id}/update_role/`,
         { is_admin: !is_admin },
         {
           withCredentials: true,
@@ -89,7 +89,7 @@ const UserAdmin = () => {
     try {
       await refreshCsrf();
       await axios.post(
-        `http://localhost:8000/api/auth/admin/users/${id}/toggle_active/`,
+        `http://localhost:8000/api/admin/users/${id}/toggle_active/`,
         {},
         {
           withCredentials: true,
@@ -121,7 +121,7 @@ const UserAdmin = () => {
     try {
       await refreshCsrf();
       await axios.post(
-        "http://localhost:8000/api/auth/admin/users/",
+        "http://localhost:8000/api/admin/users/",
         { username, email, password, is_admin },
         {
           withCredentials: true,

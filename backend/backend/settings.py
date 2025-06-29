@@ -29,8 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'corsheaders',
-    'auth_app',
-    'document_app',
+    'environovalab_app',
     'django_filters',
 
 ]

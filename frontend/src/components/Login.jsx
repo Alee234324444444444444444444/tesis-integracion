@@ -17,7 +17,7 @@ export default function Login() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await axios.post('http://localhost:8000/api/auth/login/', form)
+      const res = await axios.post('http://localhost:8000/api/login/', form)
       localStorage.setItem('auth', 'true')
       localStorage.setItem('user', res.data.username)
       localStorage.setItem('userRole', res.data.is_admin ? 'admin' : 'user') // 👈 guarda el rol

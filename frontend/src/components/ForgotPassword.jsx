@@ -15,7 +15,7 @@ export default function ForgotPassword() {
     e.preventDefault()
     setLoading(true)
     try {
-      const res = await axios.post('http://localhost:8000/api/auth/forgot-password/', { email })
+      const res = await axios.post('http://localhost:8000/api/forgot-password/', { email })
       setMessage(res.data.msg || 'Solicitud enviada')
       setIsSuccess(true)
     } catch (err) {

@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class DocumentAppConfig(AppConfig):
+class EnvironovalabAppConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'document_app'
+    name = 'environovalab_app'

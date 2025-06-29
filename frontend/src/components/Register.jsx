@@ -19,7 +19,7 @@ export default function Register() {
     e.preventDefault()
     setLoading(true) // 👈 mostrar "Registrando..."
     try {
-      const res = await axios.post('http://localhost:8000/api/auth/register/', form, {
+      const res = await axios.post('http://localhost:8000/api/register/', form, {
         headers: { 'Content-Type': 'application/json' }
       })
       setMessage(res.data.msg || 'Usuario creado correctamente')
