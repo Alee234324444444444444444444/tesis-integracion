@@ -190,3 +190,12 @@
   margin-bottom: 1rem;
   margin-left: 3rem; /* mueve hacia la derecha */
 }
+
+.status-dropdown {
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  background-color: white;
+  cursor: pointer;
+}
