@@ -9,7 +9,10 @@ from environovalab_app.serializers.resultado_serializer import ResultadoSerializ
 
 class InformeViewSet(viewsets.ViewSet):
     def create(self, request):
-        serializer = InformeSerializer(data=request.data)
+        data = request.data.copy()
+        data["created_by"] = request.data.get("created_by", "Desconocido")
+
+        serializer = InformeSerializer(data=data)
         if serializer.is_valid():
             informe = serializer.save()
             return Response(InformeSerializer(informe).data, status=status.HTTP_201_CREATED)

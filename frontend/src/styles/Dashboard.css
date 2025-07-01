@@ -12,7 +12,7 @@
 
 /* Sidebar */
 .sidebar {
-  background-color: #1e7b31; /* verde oscuro */
+  background-color: #1e7b31;
   width: 220px;
   color: white;
   display: flex;
@@ -32,12 +32,13 @@
   align-items: center;
   justify-content: center;
   padding: 0 15px;
-  
 }
 
-.logo-icon {
-  margin-right: 8px;
-  font-size: 20px;
+.logo-white {
+  width: 5rem;
+  height: auto;
+  margin-bottom: 1rem;
+  margin-left: 3rem;
 }
 
 .menu {
@@ -54,8 +55,8 @@
   color: white;
   cursor: pointer;
   transition: background-color 0.2s, border-radius 0.2s;
-  border-radius: 13px; /* siempre con forma circular */
-  margin: 4 3px; /* espaciado lateral constante */
+  border-radius: 13px;
+  margin: 4px 3px;
 }
 
 .menu-item:hover,
@@ -63,36 +64,34 @@
   background-color: #176b27;
 }
 
-
 .logout-btn {
   background: #176b27;
   color: white;
-  padding: 14px 28px 14px 40px;  /* más espacio a la izquierda */
+  padding: 14px 28px 14px 40px;
   font-size: 14px;
   text-align: left;
   cursor: pointer;
-  border-radius: 15px; /* más redondeado */
-  margin: 8px 8px;
+  border-radius: 15px;
+  margin: 24px 12px 1px 7px;
   width: calc(100% - 1px);
   border: none;
   transition: background-color 0.2s, transform 0.2s;
   display: flex;
   align-items: center;
   gap: 8px;
-  transform: translateX(-8px);  
-  margin: 24px 12px 1px 7px;
+  transform: translateX(-8px);
 }
 
-.logout-btn:active
 .logout-btn:hover {
   background-color: #176b27;
 }
 
-/* Main Content */
+/* Main content */
 .main-content {
   flex: 1;
-  padding: 30px;
-  background-color: #f1f5f9;
+  padding: 2rem;
+  overflow-y: auto;
+  background-color: #f3f4f6;
 }
 
 .user-info {
@@ -103,58 +102,159 @@
 }
 
 .section-title {
-  font-size: 18px;
+  font-size: 1.5rem;
   font-weight: bold;
-  margin-bottom: 15px;
-  color: #333;
+  margin-bottom: 1rem;
+  color: #1f2937;
 }
 
-.activity-table {
+.search-bar {
+  width: 300px;              /* ⬅️ Cambia de 100% a un valor fijo */
+  padding: 8px 12px;         /* Opcional: un poco más compacto */
+  margin-bottom: 20px;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+
+/* Tabla con estilo UA */
+.ua-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.95rem;
+  table-layout: fixed;
   background-color: white;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-.activity-table th,
-.activity-table td {
-  padding: 12px 16px;
-  text-align: left;
-}
-
-.activity-table th {
-  background-color: #f3f4f6;
-  font-weight: 600;
-  color: #333;
-  border-bottom: 1px solid #ddd;
-}
-
-.activity-table td {
-  border-bottom: 1px solid #eee;
-  font-size: 15px;
-}
-
-.status-badge {
-  background-color: #22c55e; /* verde brillante */
+/* Encabezado de tabla */
+.ua-table thead tr {
+  background: linear-gradient(to right, #228B22, #1c6b1c);
   color: white;
-  padding: 5px 12px;
-  border-radius: 999px;
-  font-size: 12px;
   font-weight: bold;
-  border: none;
+}
+
+.ua-table thead tr th:first-child {
+  border-top-left-radius: 12px;
+}
+
+.ua-table thead tr th:last-child {
+  border-top-right-radius: 12px;
+}
+
+.ua-table th,
+.ua-table td {
+  padding: 12px 16px;
+  text-align: center;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: middle;
+}
+
+.ua-table th:nth-child(1),
+.ua-table td:nth-child(1) {
+  width: 15%;
+}
+.ua-table th:nth-child(2),
+.ua-table td:nth-child(2) {
+  width: 20%;
+}
+.ua-table th:nth-child(3),
+.ua-table td:nth-child(3) {
+  width: 15%;
+}
+.ua-table th:nth-child(4),
+.ua-table td:nth-child(4) {
+  width: 20%;
+}
+.ua-table th:nth-child(5),
+.ua-table td:nth-child(5) {
+  width: 20%;
+}
+
+.ua-table th:nth-child(6),
+.ua-table td:nth-child(6) {
+  width: 140px;
+  max-width: 140px;
+  text-align: center;
+  overflow-wrap: break-word;
+}
+
+
+/* Última fila */
+.ua-last-row td:first-child {
+  border-bottom-left-radius: 12px;
+}
+.ua-last-row td:last-child {
+  border-bottom-right-radius: 12px;
+}
+
+/* Pills */
+.status-pill {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  background-color: #ccc;
+}
+
+/* Dropdown */
+.status-dropdown {
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  background-color: white;
   cursor: pointer;
-  transition: background-color 0.2s;
 }
 
-.status-badge:hover {
-  background-color: #16a34a;
+.ua-button {
+  border: none;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100px;
+  height: 32px;
+  margin: 0 auto;           /* centra horizontalmente */
 }
 
+.ua-button.red {
+  background-color: #e74c3c;
+  color: white;
+}
+.ua-button {
+  background-color: #176b27;
+  color: white;
+}
+.ua-button.gray {
+  background-color: #7f8c8d;
+  color: white;
+}
+.ua-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.ua-button .ua-icon {
+  margin-bottom: -2px;
+}
+.ua-button .ua-bold {
+  font-weight: 700;
+}
+
+/* Texto centrado */
 .illustration-text {
   text-align: center;
-  margin-top: 30px;
+  padding: 2rem;
   font-style: italic;
   color: #666;
   font-size: 13px;
@@ -173,7 +273,8 @@
     height: auto;
   }
 
-  .menu-item, .logout-btn {
+  .menu-item,
+  .logout-btn {
     flex: 1;
     text-align: center;
     padding: 10px;
@@ -184,18 +285,36 @@
   }
 }
 
-.logo-white {
-  width: 5rem;
-  height: auto;
-  margin-bottom: 1rem;
-  margin-left: 3rem; /* mueve hacia la derecha */
+
+
+.search-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 20px;
 }
 
-.status-dropdown {
-  padding: 6px 10px;
-  border-radius: 10px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  background-color: white;
-  cursor: pointer;
+.search-icon {
+  position: absolute;
+  top: 38%; /* 🔼 Ajústalo aquí para que suba más */
+  left: 12px;
+  transform: translateY(-50%);
+  color: #666;
+  pointer-events: none;
 }
+
+.search-bar {
+  width: 100%;
+  padding: 10px 14px 10px 36px; /* espacio izquierdo para ícono */
+  font-size: 1rem;
+  border-radius: 10px;
+  border: 2px solid #ccc;
+  outline: none;
+  transition: border 0.2s ease;
+}
+
+.search-bar:focus {
+  border-color: #1e7b31;
+}
+
+

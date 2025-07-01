@@ -16,13 +16,17 @@ class ProformaViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
     def create(self, request):
-        serializer = ProformaCreateSerializer(data=request.data)
+        data = request.data.copy()
+        data["created_by"] = request.data.get("created_by", "Desconocido")
+
+        serializer = ProformaCreateSerializer(data=data)
         if serializer.is_valid():
             proforma = serializer.save()
             generate_proforma_pdf(proforma.id)
             proforma.reload()
             return Response(ProformaSerializer(proforma).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     @action(detail=True, methods=['post'])
     def add_analysis(self, request, pk=None):

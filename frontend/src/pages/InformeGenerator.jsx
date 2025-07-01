@@ -114,7 +114,7 @@ const InformeGenerator = () => {
       }
 
       const payload = {
-        proforma: selectedProforma.id,
+        proforma_id: selectedProforma.id,
         fecha_emision: selectedProforma.date.slice(0, 10),
         analizado_por: selectedProforma.created_by,
         tomado_por: form.tomadoPor,
