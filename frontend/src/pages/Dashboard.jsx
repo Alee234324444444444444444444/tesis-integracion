@@ -55,7 +55,7 @@ const Dashboard = () => {
           }))
           .filter((item) => !isNaN(item.rawDate))
           .sort((a, b) => b.rawDate - a.rawDate)
-          .slice(0, 7);
+          .slice(0, 6);
 
         setAllDocs(combinedSorted);
         setFilteredData(combinedSorted);
