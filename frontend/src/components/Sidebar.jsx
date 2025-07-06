@@ -8,6 +8,7 @@ import {
   FaFlask,
   FaUsersCog,
   FaSignOutAlt,
+  FaFileAlt,
 } from "react-icons/fa";
 
 const Sidebar = () => {
@@ -49,18 +50,37 @@ const Sidebar = () => {
         <FaHome className="icon" />  Inicio
         </button>
 
-        <button
-          className={`menu-item ${activePath === "/proformas" ? "active" : ""}`}
-          onClick={() => handleNavigate("/proformas")}
-        >
-        <FaFileInvoice className="icon" />  Proformas
-        </button>
+        {role === "admin" && (
+          <>
+          <button
+            className={`menu-item ${activePath === "/proformas" ? "active" : ""}`}
+            onClick={() => handleNavigate("/proformas")}
+          >
+          <FaFileInvoice className="icon" />  Proformas
+          </button>
+
+          <button
+            className={`menu-item ${activePath === "/proformaslist" ? "active" : ""}`}
+            onClick={() => handleNavigate("/proformaslist")}
+          >
+          <FaFileAlt className="icon" />  Lista de Proformas
+          </button>
+          </>
+        )}
+        
 
         <button
           className={`menu-item ${activePath === "/informes" ? "active" : ""}`}
           onClick={() => handleNavigate("/informes")}
         >
         <FaChartBar className="icon" />  Informes
+        </button>
+
+        <button
+          className={`menu-item ${activePath === "/informeslist" ? "active" : ""}`}
+          onClick={() => handleNavigate("/informeslist")}
+        >
+        <FaChartBar className="icon" />  Lista de Informes
         </button>
 
         {role === "admin" && (

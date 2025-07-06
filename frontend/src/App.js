@@ -10,6 +10,8 @@ import InformeGenerator from "./pages/InformeGenerator";
 import AdminMuestras from "./pages/AdminMuestras";
 import UserAdmin from "./pages/UserAdmin";
 import ResetPassword from "./pages/ResetPassword";
+import InformesList from "./pages/InfromesList";
+import ProformasList from "./pages/ProformasList";
 
 function App() {
   return (
@@ -35,10 +37,10 @@ function App() {
         />
 
         <Route
-          path="/proformas"
+          path="/informeslist"
           element={
             <ProtectedRoute>
-              <ProformaGenerator />
+              <InformesList />
             </ProtectedRoute>
           }
         />
@@ -53,6 +55,24 @@ function App() {
         />
 
         {/* Rutas solo para administradores */}
+        <Route
+          path="/proformas"
+          element={
+            <ProtectedRoute onlyAdmin={true}>
+              <ProformaGenerator />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/proformaslist"
+          element={
+            <ProtectedRoute onlyAdmin={true}>
+              <ProformasList/>
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/admin/tipos-muestra"
           element={
