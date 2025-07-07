@@ -1,3 +1,4 @@
+// ProformaGenerator.jsx (modificado con sistema de "ítems" unificados)
 import React, { useState, useEffect } from "react";
 import "../styles/ProformaGenerator.css";
 import Cookies from "js-cookie";
@@ -5,8 +6,6 @@ import { CheckCircle, AlertCircle, Info, Trash2, FileDown } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 
 const ProformaGenerator = () => {
-
-  // Notificaciones tipo toast stack (apiladas arriba)
   const [notifications, setNotifications] = useState([]);
   const showNotification = (type, message, time = 3500) => {
     const id = Date.now() + Math.random();
@@ -16,7 +15,6 @@ const ProformaGenerator = () => {
     }, time);
   };
 
-  // --- ESTADOS ---
   const [clientData, setClientData] = useState({
     nombre: "",
     fecha: "",
@@ -27,17 +25,10 @@ const ProformaGenerator = () => {
     contacto: "",
   });
 
-  const [sections, setSections] = useState({
-    agua: [],
-    emisiones: [],
-    ruido: [],
-    logistica: [],
-  });
-
+  const [items, setItems] = useState([]);
   const [tiposMuestra, setTiposMuestra] = useState([]);
   const [lastProforma, setLastProforma] = useState(null);
 
-  // --- Cargar Tipos de Muestra ---
   useEffect(() => {
     const fetchTiposMuestra = async () => {
       try {
@@ -51,78 +42,28 @@ const ProformaGenerator = () => {
     fetchTiposMuestra();
   }, []);
 
-  // --- Cambiar datos de cliente ---
   const handleClientDataChange = (field, value) => {
     setClientData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // --- Limpiar todo (cliente y análisis) ---
   const handleClear = () => {
-    setClientData({
-      nombre: "",
-      fecha: "",
-      ruc: "",
-      telefono: "",
-      direccion: "",
-      correo: "",
-      contacto: "",
-    });
-    setSections({ agua: [], emisiones: [], ruido: [], logistica: [] });
+    setClientData({ nombre: "", fecha: "", ruc: "", telefono: "", direccion: "", correo: "", contacto: "" });
+    setItems([]);
     setLastProforma(null);
     showNotification("info", "Todos los campos fueron limpiados");
   };
 
-  // --- Limpiar solo datos del cliente ---
   const handleNew = () => {
-    setClientData({
-      nombre: "",
-      fecha: "",
-      ruc: "",
-      telefono: "",
-      direccion: "",
-      correo: "",
-      contacto: "",
-    });
+    setClientData({ nombre: "", fecha: "", ruc: "", telefono: "", direccion: "", correo: "", contacto: "" });
     setLastProforma(null);
     showNotification("info", "Campos del cliente limpios");
   };
 
-  // --- Cambiar datos de análisis ---
-  const updateAnalysis = (type, id, field, value) => {
-    setSections((prev) => ({
-      ...prev,
-      [type]: prev[type].map((item) =>
-        item.id === id
-          ? field
-            ? { ...item, [field]: value }
-            : { ...item, ...value }
-          : item
-      ),
-    }));
-  };
-
-  const handleTipoSeleccionado = (type, id, tipoId) => {
-    const tipo = tiposMuestra.find((t) => t.id === tipoId);
-    if (!tipo) return;
-    const updatedFields = {
-      tipoId,
-      tipo: tipo.tipo,
-      parametro: tipo.parametro,
-      parametroNombre: tipo.parametro,
-      unidad: tipo.unidad,
-      metodo: tipo.metodo,
-      metodoNombre: tipo.metodo,
-      tecnica: tipo.tecnica,
-      tecnicaNombre: tipo.tecnica,
-      precio: tipo.precio,
-      cantidad: 1,
-    };
-    updateAnalysis(type, id, null, updatedFields);
-  };
-
-  const addAnalysis = (type) => {
-    const newEntry = {
+  const addItem = () => {
+    const newItem = {
       id: Date.now(),
+      itemNumber: items.length + 1,
+      title: "",
       tipoId: "",
       parametro: "",
       unidad: "",
@@ -131,37 +72,51 @@ const ProformaGenerator = () => {
       precio: "",
       cantidad: 1,
     };
-    setSections((prev) => ({ ...prev, [type]: [...prev[type], newEntry] }));
+    setItems((prev) => [...prev, newItem]);
   };
 
-  // --- Eliminar un análisis ---
-  const removeAnalysis = (type, id) => {
-    setSections((prev) => ({
-      ...prev,
-      [type]: prev[type].filter((item) => item.id !== id),
-    }));
+  const updateItem = (id, field, value) => {
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    );
   };
 
-  // --- Validación y Guardado ---
+  const removeItem = (id) => {
+    setItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleTipoSeleccionado = (group, id, tipoId) => {
+    const tipo = tiposMuestra.find((t) => t.id === tipoId);
+    if (!tipo) return;
+
+    const updatedFields = {
+      tipoId,
+      parametro: tipo.parametro,
+      unidad: tipo.unidad,
+      metodo: tipo.metodo,
+      tecnica: tipo.tecnica,
+      precio: tipo.precio,
+    };
+
+    Object.entries(updatedFields).forEach(([key, val]) => {
+      updateItem(id, key, val);
+    });
+  };
+
   const handleSave = async () => {
     if (!clientData.nombre || !clientData.fecha || !clientData.ruc) {
       showNotification("error", "Por favor, completa los datos obligatorios del cliente");
       return;
     }
-    const allAnalyses = [
-      ...sections.agua,
-      ...sections.emisiones,
-      ...sections.ruido,
-      ...sections.logistica,
-    ];
-    if (allAnalyses.length === 0) {
-      showNotification("error", "Debe agregar al menos un análisis");
+    if (items.length === 0) {
+      showNotification("error", "Debe agregar al menos un ítem de monitoreo");
       return;
     }
-    if (allAnalyses.some((a) => !a.tipoId)) {
-      showNotification("error", "Complete todos los análisis seleccionando un tipo de muestra");
+    if (items.some((a) => !a.tipoId)) {
+      showNotification("error", "Complete todos los ítems seleccionando un tipo de muestra");
       return;
     }
+
     try {
       await fetch("http://localhost:8000/api/csrf/", { credentials: "include" });
       const csrfToken = Cookies.get("csrftoken");
@@ -178,20 +133,23 @@ const ProformaGenerator = () => {
         email: clientData.correo,
         contact_person: clientData.contacto,
       };
+
       const clientRes = await fetch("http://localhost:8000/api/clients/", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRFToken": csrfToken },
         credentials: "include",
         body: JSON.stringify(clientPayload),
       });
+
       if (!clientRes.ok) {
         const error = await clientRes.json();
         showNotification("error", "Error al guardar cliente: " + JSON.stringify(error));
         return;
       }
+
       const client = await clientRes.json();
 
-      const analysisPayload = allAnalyses.map((a) => ({
+      const analysisPayload = items.map((a) => ({
         parameter: a.parametro,
         unit: a.unidad,
         method: a.metodo,
@@ -227,20 +185,26 @@ const ProformaGenerator = () => {
     }
   };
 
-  // --- Renderizar análisis ---
-  const renderAnalysisSection = (title, type) => (
+  const renderItems = () => (
     <div className="analysis-section">
-      <h3>{title}</h3>
-      {sections[type].map((entry) => (
-        <div key={entry.id} className="analysis-entry">
+      <h3>Ítems de Monitoreo</h3>
+      {items.map((item) => (
+        <div key={item.id} className="analysis-entry">
+          <label><strong>Inicio Ítem #{item.itemNumber}</strong></label>
+          <div className="form-group full">
+            <label>Título del Ítem</label>
+            <input
+              type="text"
+              value={item.title}
+              onChange={(e) => updateItem(item.id, "title", e.target.value)}
+            />
+          </div>
           <div className="form-grid">
             <div className="form-group">
               <label>Tipo de Muestra</label>
               <select
-                value={entry.tipoId || ""}
-                onChange={(e) =>
-                  handleTipoSeleccionado(type, entry.id, e.target.value)
-                }
+                value={item.tipoId || ""}
+                onChange={(e) => handleTipoSeleccionado("general", item.id, e.target.value)}
               >
                 <option value="">Seleccione una opción</option>
                 {tiposMuestra.map((tipo) => (
@@ -251,34 +215,32 @@ const ProformaGenerator = () => {
               </select>
             </div>
             <div className="form-group">
-              <label>Tipo</label>
-              <input type="text" value={entry.tipo || ""} readOnly />
-            </div>
-            <div className="form-group">
               <label>Parámetro</label>
-              <input type="text" value={entry.parametroNombre || ""} readOnly />
+              <input type="text" value={item.parametro || ""} readOnly />
             </div>
             <div className="form-group">
               <label>Método</label>
-              <input type="text" value={entry.metodoNombre || ""} readOnly />
+              <input type="text" value={item.metodo || ""} readOnly />
             </div>
             <div className="form-group">
               <label>Técnica</label>
-              <input type="text" value={entry.tecnicaNombre || ""} readOnly />
+              <input type="text" value={item.tecnica || ""} readOnly />
+            </div>
+            <div className="form-group">
+              <label>Unidad</label>
+              <input type="text" value={item.unidad || ""} readOnly />
             </div>
             <div className="form-group">
               <label>Precio</label>
-              <input type="number" value={entry.precio} readOnly />
+              <input type="number" value={item.precio || ""} readOnly />
             </div>
             <div className="form-group">
               <label>Cantidad</label>
               <input
                 type="number"
                 min="1"
-                value={entry.cantidad}
-                onChange={(e) =>
-                  updateAnalysis(type, entry.id, "cantidad", e.target.value)
-                }
+                value={item.cantidad}
+                onChange={(e) => updateItem(item.id, "cantidad", e.target.value)}
               />
             </div>
             <div className="form-group" style={{ display: "flex", alignItems: "center" }}>
@@ -286,7 +248,7 @@ const ProformaGenerator = () => {
                 type="button"
                 className="icon-btn"
                 title="Eliminar análisis"
-                onClick={() => removeAnalysis(type, entry.id)}
+                onClick={() => removeItem(item.id)}
               >
                 <Trash2 size={20} color="#e74c3c" />
               </button>
@@ -294,27 +256,24 @@ const ProformaGenerator = () => {
           </div>
         </div>
       ))}
-      <button className="add-analysis-btn" onClick={() => addAnalysis(type)}>
-        Agregar {title}
+      <button className="add-analysis-btn" onClick={addItem}>
+        Agregar Ítem de Monitoreo
       </button>
     </div>
   );
 
-  // --- Render ---
   return (
     <>
-      {/* --- Notificaciones tipo tiritas apiladas arriba --- */}
       <div className="my-toast-container">
         {notifications.map((n) => (
           <div key={n.id} className={`my-toast ${n.type}`}>
-            {n.type === "success" && <CheckCircle size={22} style={{marginRight: 8}} />}
-            {n.type === "error" && <AlertCircle size={22} style={{marginRight: 8}} />}
-            {n.type === "info" && <Info size={22} style={{marginRight: 8}} />}
+            {n.type === "success" && <CheckCircle size={22} style={{ marginRight: 8 }} />}
+            {n.type === "error" && <AlertCircle size={22} style={{ marginRight: 8 }} />}
+            {n.type === "info" && <Info size={22} style={{ marginRight: 8 }} />}
             {n.message}
           </div>
         ))}
       </div>
-
       <div className="container">
         <Sidebar />
         <div className="main">
@@ -327,9 +286,7 @@ const ProformaGenerator = () => {
                 <input
                   type="text"
                   value={clientData.nombre}
-                  onChange={(e) =>
-                    handleClientDataChange("nombre", e.target.value)
-                  }
+                  onChange={(e) => handleClientDataChange("nombre", e.target.value)}
                   required
                 />
               </div>
@@ -338,9 +295,7 @@ const ProformaGenerator = () => {
                 <input
                   type="date"
                   value={clientData.fecha}
-                  onChange={(e) =>
-                    handleClientDataChange("fecha", e.target.value)
-                  }
+                  onChange={(e) => handleClientDataChange("fecha", e.target.value)}
                   required
                 />
               </div>
@@ -358,9 +313,7 @@ const ProformaGenerator = () => {
                 <input
                   type="text"
                   value={clientData.telefono}
-                  onChange={(e) =>
-                    handleClientDataChange("telefono", e.target.value)
-                  }
+                  onChange={(e) => handleClientDataChange("telefono", e.target.value)}
                 />
               </div>
               <div className="form-group full">
@@ -368,9 +321,7 @@ const ProformaGenerator = () => {
                 <input
                   type="text"
                   value={clientData.direccion}
-                  onChange={(e) =>
-                    handleClientDataChange("direccion", e.target.value)
-                  }
+                  onChange={(e) => handleClientDataChange("direccion", e.target.value)}
                 />
               </div>
               <div className="form-group">
@@ -378,9 +329,7 @@ const ProformaGenerator = () => {
                 <input
                   type="email"
                   value={clientData.correo}
-                  onChange={(e) =>
-                    handleClientDataChange("correo", e.target.value)
-                  }
+                  onChange={(e) => handleClientDataChange("correo", e.target.value)}
                 />
               </div>
               <div className="form-group">
@@ -388,29 +337,25 @@ const ProformaGenerator = () => {
                 <input
                   type="text"
                   value={clientData.contacto}
-                  onChange={(e) =>
-                    handleClientDataChange("contacto", e.target.value)
-                  }
+                  onChange={(e) => handleClientDataChange("contacto", e.target.value)}
                 />
               </div>
             </div>
           </div>
 
-          {renderAnalysisSection("Monitoreo de Agua", "agua")}
-          {renderAnalysisSection("Monitoreo de Emisiones Gaseosas", "emisiones")}
-          {renderAnalysisSection("Monitoreo de Ruido", "ruido")}
+          {renderItems()}
 
           <div className="button-group">
             <button className="button gray" onClick={handleNew}>
-              <Info size={16} style={{marginRight: 4, marginBottom: -2}} />
+              <Info size={16} style={{ marginRight: 4, marginBottom: -2 }} />
               Limpiar Cliente
             </button>
             <button className="button orange" onClick={handleClear}>
-              <Trash2 size={16} style={{marginRight: 4, marginBottom: -2}} />
+              <Trash2 size={16} style={{ marginRight: 4, marginBottom: -2 }} />
               Limpiar Todo
             </button>
             <button className="button green" onClick={handleSave}>
-              <CheckCircle size={16} style={{marginRight: 4, marginBottom: -2}} />
+              <CheckCircle size={16} style={{ marginRight: 4, marginBottom: -2 }} />
               Guardar
             </button>
           </div>
@@ -418,13 +363,13 @@ const ProformaGenerator = () => {
           {lastProforma && lastProforma.pdf_url && (
             <div style={{ marginTop: "20px" }}>
               <a
-                href={`http://localhost:8000${lastProforma.pdf_url.startsWith('/') ? lastProforma.pdf_url : '/' + lastProforma.pdf_url}`}
+                href={`http://localhost:8000${lastProforma.pdf_url.startsWith("/") ? lastProforma.pdf_url : "/" + lastProforma.pdf_url}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="button blue"
                 download
               >
-                <FileDown size={18} style={{marginRight: 6, marginBottom: -2}} />
+                <FileDown size={18} style={{ marginRight: 6, marginBottom: -2 }} />
                 Descargar PDF de Proforma
               </a>
             </div>
