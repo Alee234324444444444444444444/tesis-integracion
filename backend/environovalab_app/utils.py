@@ -7,71 +7,149 @@ from reportlab.lib.styles import getSampleStyleSheet
 from .models import Proforma, Analysis, CompanySettings, Resultado, Informe
 
 def generate_proforma_pdf(proforma_id, output_folder="media/proformas/"):
-    proforma = Proforma.objects.get(id=proforma_id)
-    analyses = Analysis.objects.filter(proforma=proforma)
-    company = CompanySettings.objects.first()
-    client = proforma.client
+    import os
+    import traceback
+    from django.http import Http404
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle, Spacer, Image
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib import colors
+    from reportlab.lib.units import mm
+    from django.conf import settings
+    from .models import Proforma, Analysis, CompanySettings
 
-    if not os.path.exists(output_folder):
-        os.makedirs(output_folder)
-    pdf_filename = f"{proforma.proforma_number}.pdf"
-    pdf_path = os.path.join(output_folder, pdf_filename)
+    try:
+        proforma = Proforma.objects.get(id=proforma_id)
+        analyses = Analysis.objects.filter(proforma=proforma)
+        company = CompanySettings.objects.first()
+        client = proforma.client
 
-    doc = SimpleDocTemplate(pdf_path, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=40, bottomMargin=30)
-    story = []
-    styles = getSampleStyleSheet()
-    styleN = styles['Normal']
-    styleH = styles['Heading1']
+        if not os.path.exists(output_folder):
+            os.makedirs(output_folder)
 
-    if company and company.company_logo and os.path.exists(company.company_logo):
-        logo = Image(company.company_logo, width=40*mm, height=40*mm)
-        story.append(logo)
-    story.append(Paragraph(f"<b>{company.company_name}</b>", styleH))
-    story.append(Paragraph(f"Dirección: {company.company_address}", styleN))
-    story.append(Paragraph(f"Tel: {company.company_phone} | Email: {company.company_email}", styleN))
-    story.append(Spacer(1, 10))
+        pdf_filename = f"{proforma.proforma_number}.pdf"
+        pdf_path = os.path.join(output_folder, pdf_filename)
 
-    story.append(Paragraph(f"<b>PROFORMA N°:</b> {proforma.proforma_number}", styleN))
-    story.append(Paragraph(f"<b>Fecha:</b> {proforma.date.strftime('%d/%m/%Y')}", styleN))
-    story.append(Spacer(1, 8))
-    story.append(Paragraph(f"<b>Cliente:</b> {client.name}", styleN))
-    story.append(Paragraph(f"<b>RUC:</b> {client.ruc}", styleN))
-    story.append(Paragraph(f"<b>Dirección:</b> {client.address}", styleN))
-    story.append(Paragraph(f"<b>Teléfono:</b> {client.phone}", styleN))
-    story.append(Paragraph(f"<b>Email:</b> {client.email}", styleN))
-    story.append(Paragraph(f"<b>Contacto:</b> {client.contact_person}", styleN))
-    story.append(Spacer(1, 10))
+        doc = SimpleDocTemplate(pdf_path, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=40, bottomMargin=30)
+        story = []
+        styles = getSampleStyleSheet()
+        styleN = styles['Normal']
+        styleB = ParagraphStyle('Bold', parent=styleN, fontName='Helvetica-Bold')
+        styleTitle = ParagraphStyle('HeaderTitle', parent=styleN, alignment=1, fontSize=18, spaceAfter=10)
 
-    data = [["#", "Parámetro", "Unidad", "Método", "Técnica", "Precio Unitario", "Cantidad", "Subtotal"]]
-    for i, a in enumerate(analyses, start=1):
-        data.append([
-            str(i), a.parameter, a.unit, a.method, a.technique,
-            f"${a.unit_price:.2f}", str(a.quantity), f"${a.subtotal:.2f}"
-        ])
-    table = Table(data, hAlign='LEFT')
-    table.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#d0efb1")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-        ("FONTSIZE", (0, 0), (-1, -1), 10),
-    ]))
-    story.append(table)
-    story.append(Spacer(1, 12))
+        # Línea horizontal superior
+        linea_superior = Table([[""]], colWidths=[530])
+        linea_superior.setStyle(TableStyle([
+            ("LINEABOVE", (0, 0), (-1, -1), 0.5, colors.grey)
+        ]))
+        story.append(linea_superior)
+        story.append(Spacer(1, 4))
 
-    story.append(Paragraph(f"<b>Subtotal:</b> ${proforma.subtotal:.2f}", styleN))
-    story.append(Paragraph(f"<b>IVA ({company.tax_rate*100:.0f}%):</b> ${proforma.tax_amount:.2f}", styleN))
-    story.append(Paragraph(f"<b>Total:</b> ${proforma.total:.2f}", styleN))
+        # Logo y encabezado con título (logo a la derecha)
+        logo_path = os.path.join(settings.MEDIA_ROOT, "logos", "logo_empresa.png")
+        logo_img = Image(logo_path, width=30 * mm, height=12 * mm) if os.path.exists(logo_path) else ""
 
-    story.append(Spacer(1, 24))
-    story.append(Paragraph("Gracias por confiar en nuestros servicios.", styleN))
+        header_data = [
+            [Paragraph(f"<b>PROFORMA N°: {proforma.proforma_number}</b>", styleTitle), logo_img]
+        ]
+        header_table = Table(header_data, colWidths=[400, 100])
+        header_table.setStyle(TableStyle([
+            ("ALIGN", (0, 0), (0, 0), "CENTER"),
+            ("ALIGN", (1, 0), (1, 0), "RIGHT"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ]))
+        story.append(header_table)
+        story.append(Spacer(1, 10))
 
-    doc.build(story)
-    proforma.pdf_url = pdf_path
-    proforma.save()
-    return pdf_path
+        # Datos de empresa (una sola línea bajo el título)
+        if company:
+            empresa_linea = Paragraph(
+                f"{company.company_name} • {company.company_address} • Tel: {company.company_phone} • Email: {company.company_email}",
+                styles['Italic']
+            )
+            story.append(empresa_linea)
+            story.append(Spacer(1, 8))
+
+        # Datos del cliente (mismo estilo que informe)
+        client_info = [
+            [Paragraph("<b>FECHA:</b>", styleB), proforma.date.strftime("%d/%m/%Y")],
+            [Paragraph("<b>CLIENTE:</b>", styleB), client.name],
+            [Paragraph("<b>RUC:</b>", styleB), client.ruc],
+            [Paragraph("<b>TELÉFONO:</b>", styleB), client.phone],
+            [Paragraph("<b>EMAIL:</b>", styleB), client.email],
+            [Paragraph("<b>DIRECCIÓN:</b>", styleB), client.address],
+            [Paragraph("<b>CONTACTO:</b>", styleB), client.contact_person],
+        ]
+        client_table = Table(client_info, colWidths=[100, 400])
+        client_table.setStyle(TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ]))
+        story.append(client_table)
+        story.append(Spacer(1, 14))
+
+        # Tabla de ítems / análisis (encabezado verde como el informe)
+        data = [["#", "Parámetro", "Unidad", "Método", "Técnica", "Precio Unitario", "Cantidad", "Subtotal"]]
+        for i, a in enumerate(analyses, start=1):
+            data.append([
+                str(i),
+                a.parameter,
+                a.unit,
+                a.method,
+                a.technique,
+                f"${a.unit_price:.2f}",
+                str(a.quantity),
+                f"${a.subtotal:.2f}",
+            ])
+
+        items_table = Table(
+            data,
+            hAlign='CENTER',
+            colWidths=[30, 90, 55, 70, 70, 80, 55, 70]
+        )
+        items_table.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2d6a4f")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+            ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ]))
+        story.append(items_table)
+        story.append(Spacer(1, 14))
+
+        # Totales (alineado a la derecha)
+        if company and company.tax_rate is not None:
+            iva_pct = int(company.tax_rate * 100)
+        else:
+            iva_pct = 12  # fallback
+
+        totals = [
+            [Paragraph("<b>Subtotal:</b>", styleB), f"${proforma.subtotal:.2f}"],
+            [Paragraph(f"<b>IVA ({iva_pct}%):</b>", styleB), f"${proforma.tax_amount:.2f}"],
+            [Paragraph("<b>Total:</b>", styleB), f"${proforma.total:.2f}"],
+        ]
+        totals_table = Table(totals, hAlign='RIGHT', colWidths=[120, 80])
+        totals_table.setStyle(TableStyle([
+            ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+            ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+            ("FONTSIZE", (0, 0), (-1, -1), 10),
+        ]))
+        story.append(totals_table)
+        story.append(Spacer(1, 18))
+
+        # Mensaje final
+        story.append(Paragraph("Gracias por confiar en nuestros servicios.", styles['Italic']))
+
+        # Construir PDF y guardar URL
+        doc.build(story)
+        proforma.pdf_url = pdf_path
+        proforma.save()
+        return pdf_path
+
+    except Exception as e:
+        traceback.print_exc()
+        raise Http404("Error al generar la proforma PDF.")
 
 def generate_informe_pdf(proforma_id, output_folder="media/informes/"):
     import os

@@ -4,18 +4,7 @@ import Sidebar from "../components/Sidebar";
 import axios from "axios";
 import { FileDown, Search } from "lucide-react";
 
-const statusColors = {
-  "Por hacer": "gray",
-  "En progreso": "#facc15",
-  "Terminado": "#22c55e",
-};
-
-const statusOptions = ["Por hacer", "En progreso", "Terminado"];
-
 const InformesList = () => {
-  const username = localStorage.getItem("user") || "Usuario";
-  const role = (localStorage.getItem("userRole") || "user").toLowerCase().trim();
-  const isAdmin = role === "admin";
 
   const [search, setSearch] = useState("");
   const [allDocs, setAllDocs] = useState([]);
@@ -63,22 +52,6 @@ const InformesList = () => {
     );
   }, [search, allDocs]);
 
-  const handleStatusChange = async (id, newStatus) => {
-    try {
-      await axios.patch(
-        `http://localhost:8000/api/informes/${id}/`,
-        { status: newStatus }
-      );
-      setAllDocs((prev) =>
-        prev.map((doc) =>
-          doc.id === id ? { ...doc, status: newStatus } : doc
-        )
-      );
-    } catch (err) {
-      console.error("Error actualizando estado:", err);
-    }
-  };
-
 const handleDownload = async (doc) => {
   try {
     let url = "";
@@ -112,13 +85,8 @@ const handleDownload = async (doc) => {
     <div className="dashboard-container">
       <Sidebar />
       <div className="main-content">
-        <div className="user-info">
-          <h2>
-            Hola, <strong>{username}</strong> 👋
-          </h2>
-        </div>
 
-        <h2 className="section-title">Informes Recientes</h2>
+        <h2 className="section-title">Historial - Informes</h2>
         <div className="search-container">
           <span className="search-icon">
             <Search size={16} />
@@ -133,7 +101,6 @@ const handleDownload = async (doc) => {
                 <th>Tipo</th>
                 <th>Código</th>
                 <th>Fecha</th>
-                <th>Estado</th>
                 <th>Creado por</th>
                 <th>Acción</th>
               </tr>
@@ -144,30 +111,6 @@ const handleDownload = async (doc) => {
                   <td>{doc.type}</td>
                   <td>{doc.code}</td>
                   <td>{new Date(doc.date).toLocaleDateString()}</td>
-                  <td>
-                    {isAdmin ? (
-                      <select
-                        value={doc.status}
-                        onChange={(e) => handleStatusChange(doc.id, e.target.value)}
-                        className="status-dropdown"
-                      >
-                        {statusOptions.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
-                    ) : (
-                      <span
-                        className="status-pill"
-                        style={{
-                          backgroundColor: statusColors[doc.status] || "#ccc",
-                        }}
-                      >
-                        {doc.status}
-                      </span>
-                    )}
-                  </td>
                   <td>{doc.creado_por}</td>
                   <td>
                     <button className="ua-button" onClick={() => handleDownload(doc)}>

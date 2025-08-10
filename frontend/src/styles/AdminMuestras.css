@@ -11,16 +11,6 @@
   background-color: #f3f4f6;
 }
 
-/* Sidebar */
-.sidebar {
-  background-color: #1e7b31;
-  width: 220px;
-  color: white;
-  display: flex;
-  flex-direction: column;
-  padding-top: 20px;
-}
-
 /* --- Main Content --- */
 .main-content {
   flex: 1;
