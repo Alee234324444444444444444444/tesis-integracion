@@ -143,7 +143,10 @@ const ProformaGenerator = () => {
 
       if (!clientRes.ok) {
         const error = await clientRes.json();
-        showNotification("error", "Error al guardar cliente: " + JSON.stringify(error));
+        const errorMessages = Object.values(error)
+        .flat()
+        .join(" ");
+        showNotification("error", "Error al guardar cliente: " + errorMessages);
         return;
       }
 

@@ -79,25 +79,34 @@ const InformesList = () => {
     }
   };
 
-  const handleDownload = async (doc) => {
-    try {
-      const proformaId = doc.proforma?.id;
+const handleDownload = async (doc) => {
+  try {
+    let url = "";
+    let filename = doc.code || "documento";
+
+    if (doc.type === "Informe") {
+      const proformaId = typeof doc.proforma === "object" ? doc.proforma.id : doc.proforma;
       if (!proformaId) {
         console.error("No se encontró el ID de la proforma relacionada.");
         return;
       }
-      const url = `http://localhost:8000/api/proformas/${proformaId}/informe_pdf/`;
-      const res = await axios.get(url, { responseType: "blob" });
-
-      const file = new Blob([res.data], { type: "application/pdf" });
-      const link = document.createElement("a");
-      link.href = window.URL.createObjectURL(file);
-      link.download = `${doc.code || "documento"}.pdf`;
-      link.click();
-    } catch (err) {
-      console.error("Error al descargar PDF:", err.response?.data || err.message);
+      url = `http://localhost:8000/api/proformas/${proformaId}/informe_pdf/`;
+    } else if (doc.type === "Proforma") {
+      url = `http://localhost:8000/api/proformas/${doc.id}/pdf/`;
     }
-  };
+
+    const res = await axios.get(url, { responseType: "blob" });
+
+    const file = new Blob([res.data], { type: "application/pdf" });
+    const link = document.createElement("a");
+    link.href = window.URL.createObjectURL(file);
+    link.download = `${filename}.pdf`;
+    link.click();
+  } catch (err) {
+    console.error("Error al descargar PDF:", err.response?.data || err.message);
+  }
+};
+
 
   return (
     <div className="dashboard-container">
